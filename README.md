@@ -46,13 +46,15 @@ MyVibe Framework enables fully automated software development through AI orchest
 
 ## Key Features
 
-- **Multi-AI Consensus**: Claude orchestrates, ChatGPT reviews, Gemini challenges
+- **Multi-AI Consensus**: Claude orchestrates, ChatGPT (GPT-5.2) reviews, Gemini (3 Flash) challenges
 - **6-Phase SDLC**: Requirements → Architecture → Planning → Development → Testing → Deployment
-- **Iteration Control**: Automatic iteration with configurable max limits per phase
+- **Dynamic Iteration Control**: Max iterations configurable per phase via `state_update_phase_max_iterations`
 - **Quality Gates**: 7-level quality gates (L1-L7) from task completion to regression testing
-- **Human-in-the-Loop**: Mandatory human approval before phase transitions
+- **Human-in-the-Loop**: Human approval only at phase transitions (not during iterations)
+- **Project-Specific Agents**: Custom agent definitions in `docs/agents/*.md` with system prompts
 - **Real-time Observability**: Elasticsearch + Grafana dashboards for monitoring
 - **Minimal User Input**: Simple commands like `devam` (continue) to progress
+- **Phase-Specific Behavior**: AI consensus for early phases, quality gates for TESTING/DEPLOYMENT
 
 ## SDLC Workflow
 
@@ -72,14 +74,16 @@ Human OK        Human OK        Human OK     Sprint OK      Human OK     Complet
 
 ### Phase Details
 
-| Phase | Max Iterations | Required Artifacts | Exit Criteria |
-|-------|----------------|-------------------|---------------|
-| REQUIREMENTS | 5 | Requirements, User Stories | Acceptance criteria defined, NFRs quantified, AI consensus |
-| ARCHITECTURE | 4 | Architecture, API Contracts, Data Model | C4 model, OpenAPI 3.0, Security design |
-| PLANNING | 3 | Epic Breakdown, Task List | Tasks ≤4h, Dependencies mapped, Agents assigned |
-| DEVELOPMENT | 10 | Code | All tasks done, Quality gates L1-L2 passed |
-| TESTING | 5 | Test Plan | 80% coverage, Integration/E2E/Performance tests pass |
-| DEPLOYMENT | 3 | Documentation | Deployment successful, Health checks pass |
+| Phase | Default Max Iter | AI Consensus | Human Approval | Required Artifacts | Exit Criteria |
+|-------|------------------|--------------|----------------|-------------------|---------------|
+| REQUIREMENTS | 5 | ✅ Required | At phase end | Requirements, User Stories | Acceptance criteria, NFRs, AI consensus |
+| ARCHITECTURE | 4 | ✅ Required | At phase end | Architecture, API Contracts, Data Model | C4 model, OpenAPI 3.0, Security design |
+| PLANNING | 3 | ✅ Required | At phase end | Epic Breakdown, Task List | Tasks ≤4h, Dependencies mapped |
+| DEVELOPMENT | 10 | ❌ Not needed | Sprint completion | Code | All tasks done, L1-L2 quality gates |
+| TESTING | 5 | ❌ Not needed | At phase end | Test Plan | L3-L6 quality gates pass |
+| DEPLOYMENT | 3 | ❌ Not needed | At phase end | Documentation | Deployment successful |
+
+> **Note**: Max iterations are configurable per phase using `state_update_phase_max_iterations`. Values shown are defaults.
 
 ## Components
 
@@ -97,6 +101,13 @@ The brain of the framework. Orchestrates all other servers and guides the workfl
 | `sdlc_sprint` | Sprint summary and planning |
 | `sdlc_next` | Get single next action |
 | `sdlc_help` | Show command reference |
+| `sdlc_validate_advance` | Check if phase can advance (enforcement) |
+| `sdlc_run_ai_review` | Execute full AI review sequence |
+| `sdlc_get_agents` | Get agents for tech stack (includes project-specific) |
+| `sdlc_get_agent_context` | Get agent's system prompt for task execution |
+| `sdlc_validate_agents` | Validate all required agents are registered |
+| `sdlc_generate_docs` | Generate phase documentation |
+| `sdlc_generate_changelog` | Generate changelog from iterations |
 
 ### 2. AI Gateway MCP Server
 **Location**: `ai-gateway-mcp-server/`
@@ -132,6 +143,7 @@ PostgreSQL-backed persistent state management.
 | `state_get_phase` | Get current/specific phase |
 | `state_start_phase` | Start a phase |
 | `state_advance_phase` | Move to next phase |
+| `state_update_phase_max_iterations` | Update max iterations for a phase |
 | `state_create_iteration` | Create new iteration |
 | `state_record_review` | Record AI reviews |
 | `state_record_consensus` | Record consensus status |
@@ -139,6 +151,7 @@ PostgreSQL-backed persistent state management.
 | `state_save_artifact` | Save versioned artifact |
 | `state_get_artifact` | Get artifact |
 | `state_register_agent` | Register project agent |
+| `state_get_agents` | Get registered agents |
 | `state_create_task` | Create task |
 | `state_update_task` | Update task status |
 | `state_get_tasks` | List tasks |
@@ -206,6 +219,50 @@ Real-time monitoring with Elasticsearch, Kibana, and Grafana.
 | L6 | SECURITY_SCAN | Security scan clean |
 | L7 | REGRESSION_TESTING | Regression tests pass |
 
+## Project-Specific Agents
+
+Define custom agents for your project in `docs/agents/*.md` files. Each agent can have:
+
+```markdown
+# Backend Node Developer Agent
+
+## Metadata
+| Alan | Değer |
+|------|-------|
+| **ID** | `uuid-here` |
+| **Tip** | `BACKEND_NODE` |
+| **İsim** | Backend Node Developer |
+
+## Tech Stack
+- TypeScript
+- Node.js
+- Express
+
+## Sorumluluklar
+1. Express server implementasyonu
+2. REST API endpoint'leri
+
+## System Prompt
+\`\`\`
+Sen projenin Backend Developer'ısın.
+- TypeScript strict mode kullan
+- Tüm input'ları Zod ile validate et
+...
+\`\`\`
+```
+
+Use `sdlc_get_agent_context` to load agent's system prompt during task execution:
+
+```typescript
+// Get agent context
+const context = await sdlc_get_agent_context({
+  workspacePath: "/path/to/project",
+  agentType: "BACKEND_NODE",
+  taskDescription: "Implement login endpoint"
+});
+// context.systemPrompt contains the agent's instructions
+```
+
 ## Installation
 
 ### Prerequisites
@@ -218,7 +275,7 @@ Real-time monitoring with Elasticsearch, Kibana, and Grafana.
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/MyVibe_Framework.git
+git clone https://github.com/mytechsonamy/MyVibe_Framework.git
 cd MyVibe_Framework
 ```
 
@@ -389,6 +446,9 @@ MyVibe_Framework/
 │   ├── src/
 │   │   ├── index.ts                    # MCP server entry
 │   │   ├── workflow.ts                 # Phase definitions
+│   │   ├── agents.ts                   # Default agent registry
+│   │   ├── agent-loader.ts             # Project-specific agent loader
+│   │   ├── enforcement.ts              # Phase transition enforcement
 │   │   └── schemas/orchestrator.ts     # Tool schemas
 │   └── package.json
 │
@@ -448,9 +508,16 @@ MyVibe_Framework/
 ### AI Gateway
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `OPENAI_API_KEY` | Yes | OpenAI API key for ChatGPT |
-| `GOOGLE_API_KEY` | Yes | Google AI API key for Gemini |
+| `OPENAI_API_KEY` | Yes | OpenAI API key for GPT-5.2 |
+| `GOOGLE_API_KEY` | Yes | Google AI API key for Gemini 3 Flash |
 | `ELASTICSEARCH_URL` | No | Elasticsearch for logging |
+
+### Token Costs (per 1M tokens)
+| Provider | Model | Input | Output |
+|----------|-------|-------|--------|
+| OpenAI | GPT-5.2 | $1.75 | $14.00 |
+| Google | Gemini 3 Flash | $0.50 | $3.00 |
+| Anthropic | Claude Opus 4 | $15.00 | $75.00 |
 
 ### Project State
 | Variable | Required | Description |
@@ -501,13 +568,18 @@ sudo sysctl -w vm.max_map_count=262144
 
 ## Roadmap
 
-- [ ] Token usage tracking per AI agent (Claude, ChatGPT, Gemini)
-- [ ] Enforcement middleware for phase transitions
-- [ ] Automatic AI review execution
-- [ ] Quality gate enforcement
-- [ ] Documentation generation per SDLC phase
-- [ ] Agent management system
-- [ ] Cost estimation and tracking
+- [x] Token usage tracking per AI agent (Claude, ChatGPT, Gemini)
+- [x] Enforcement middleware for phase transitions
+- [x] Automatic AI review execution
+- [x] Quality gate enforcement
+- [x] Documentation generation per SDLC phase
+- [x] Agent management system
+- [x] Cost estimation and tracking
+- [x] Project-specific agent definitions (docs/agents/*.md)
+- [x] Dynamic max iteration configuration
+- [ ] Multi-project dashboard
+- [ ] Agent collaboration visualization
+- [ ] Automated rollback on failed deployments
 
 ## Contributing
 
