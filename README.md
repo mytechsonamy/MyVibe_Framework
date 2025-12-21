@@ -568,6 +568,7 @@ sudo sysctl -w vm.max_map_count=262144
 
 ## Roadmap
 
+### Completed Features
 - [x] Token usage tracking per AI agent (Claude, ChatGPT, Gemini)
 - [x] Enforcement middleware for phase transitions
 - [x] Automatic AI review execution
@@ -577,9 +578,68 @@ sudo sysctl -w vm.max_map_count=262144
 - [x] Cost estimation and tracking
 - [x] Project-specific agent definitions (docs/agents/*.md)
 - [x] Dynamic max iteration configuration
+
+### In Progress
 - [ ] Multi-project dashboard
 - [ ] Agent collaboration visualization
 - [ ] Automated rollback on failed deployments
+
+### Brownfield Support (Existing Large Codebase Adaptation)
+
+Framework'ü mevcut büyük projelerde (100K+ LOC) çalışabilir hale getirmek için planlanan özellikler:
+
+#### P0 - Critical (Core Infrastructure)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Repo Intelligence Indexer** | AST + Symbol + Dependency Graph extraction for codebase understanding. Multi-language support (TS/JS, Python, Java, Go). Incremental indexing with cache. | 🔲 Planned |
+| **Change Impact Engine** | Graph-based impact analysis with risk scoring. Detects affected files/modules, breaking changes, and test coverage implications. | 🔲 Planned |
+| **Context Orchestrator** | Selective file loading + hierarchical summaries (L0-L3) + source citations. Manages LLM context limits systematically. | 🔲 Planned |
+
+#### P1 - High Priority (Workflow Enhancement)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Incremental Delivery Planner** | Slices large changes into reviewable PRs. Feature flag strategies, backwards compatibility playbooks, rollout plans. | 🔲 Planned |
+| **Test Intelligence Layer** | Impact-based test selection, flaky test management, coverage gap detection, mutation testing support. | 🔲 Planned |
+| **Architecture Guardrails** | Linter-like rules at architecture level. Enforces layer boundaries, coding patterns, and project conventions. | 🔲 Planned |
+
+#### P2 - Medium Priority (Integration & Analytics)
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **PR/Branch Orchestrator** | VCS-native workflow with auto-generated PR templates, CODEOWNERS integration, AI provenance tracking. | 🔲 Planned |
+| **Hotspot & Ownership Analyzer** | Git churn analysis, bug-prone file detection, domain ownership mapping. Risk model integration. | 🔲 Planned |
+| **Repo Fingerprinting** | Learns project "dialect" - coding style, error handling patterns, logging standards, naming conventions. | 🔲 Planned |
+
+#### Key Challenges Identified (via AI Consensus)
+
+| Challenge | Impact | Mitigation |
+|-----------|--------|------------|
+| **Contextual Hallucination** | Critical | Hybrid Graph-RAG + grounded citations |
+| **Technical Debt Blindness** | High | Repo fingerprinting + ADR integration |
+| **Dependency Hell** | High | Runtime trace analysis + DI container awareness |
+| **Validation Paradox** | Medium | Impact-based test selection + parallel execution |
+| **Lost in the Middle** | Medium | Hierarchical summarization + context-on-demand |
+
+#### Comparison with Other Tools
+
+| Tool | Approach | MyVibe Advantage |
+|------|----------|------------------|
+| Cursor | IDE-level indexing, fast but misses big picture | Full SDLC lifecycle + multi-AI consensus |
+| Devin | Autonomous agent, expensive and slow | Human-in-the-loop balance, cost-effective |
+| Copilot Workspace | Issue → Plan → Code | Deep planning phases + quality gates |
+| Aider | ctags-based, lightweight | Enterprise-grade state management + observability |
+
+#### Implementation Phases
+
+```
+Phase 1 (Core)           Phase 2 (Workflow)        Phase 3 (Integration)
+─────────────────────    ─────────────────────     ─────────────────────
+• Repo Indexer           • Slice Planner           • PR Orchestrator
+• Impact Engine          • Test Intelligence       • Hotspot Analyzer
+• Context Orchestrator   • Arch Guardrails         • Repo Fingerprinting
+```
 
 ## Contributing
 
