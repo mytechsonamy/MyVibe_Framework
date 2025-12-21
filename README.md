@@ -191,7 +191,37 @@ File system and Git operations for development.
 | `dev_run_build` | Build project |
 | `dev_run_lint` | Run linter |
 
-### 5. Observability Stack
+### 5. Repo Indexer MCP Server
+**Location**: `repo-indexer-mcp-server/`
+
+Codebase intelligence through indexing, symbol tracking, and dependency analysis.
+
+| Tool | Description |
+|------|-------------|
+| `repo_index` | Index repository (incremental, multi-language) |
+| `repo_status` | Get index status and stats |
+| `repo_query_symbols` | Query symbols (functions, classes, types) |
+| `repo_query_dependencies` | Find file dependencies (incoming/outgoing) |
+| `repo_dependency_graph` | Generate dependency graph (adjacency/edges/mermaid) |
+| `repo_analyze_impact` | Analyze change impact with risk scoring |
+| `repo_get_hotspots` | Find code hotspots (dependents/complexity/churn) |
+| `repo_search` | Search symbols across codebase |
+
+### 6. Context Orchestrator MCP Server
+**Location**: `context-orchestrator-mcp-server/`
+
+Intelligent context selection and token budget management for large codebases.
+
+| Tool | Description |
+|------|-------------|
+| `context_plan` | Plan optimal context selection for a task |
+| `context_get` | Get optimized context chunks within token budget |
+| `context_analyze_relevance` | Analyze file relevance for targets |
+| `context_summarize_file` | Get concise file summary |
+| `context_chunk_file` | Split file into semantic chunks |
+| `context_estimate_tokens` | Estimate token counts for files |
+
+### 7. Observability Stack
 **Location**: `sdlc-observability/`
 
 Real-time monitoring with Elasticsearch, Kibana, and Grafana.
@@ -493,6 +523,27 @@ MyVibe_Framework/
 │   │       └── logger.ts               # Elasticsearch logger
 │   └── package.json
 │
+├── repo-indexer-mcp-server/            # Codebase intelligence
+│   ├── src/
+│   │   ├── index.ts                    # MCP server entry
+│   │   ├── types.ts                    # Type definitions
+│   │   ├── schemas/indexer.ts          # Tool schemas
+│   │   └── services/
+│   │       ├── indexer.ts              # Main indexer + impact analysis
+│   │       ├── parser.ts               # Multi-language code parser
+│   │       └── storage.ts              # SQLite index storage
+│   └── package.json
+│
+├── context-orchestrator-mcp-server/    # Context management
+│   ├── src/
+│   │   ├── index.ts                    # MCP server entry
+│   │   ├── types.ts                    # Type definitions
+│   │   ├── schemas/context.ts          # Tool schemas
+│   │   └── services/
+│   │       ├── orchestrator.ts         # Context selection logic
+│   │       └── tokenizer.ts            # Token counting (tiktoken)
+│   └── package.json
+│
 └── sdlc-observability/                 # Monitoring stack
     ├── docker-compose.yml              # ELK + Grafana
     ├── shared/
@@ -595,13 +646,13 @@ sudo sysctl -w vm.max_map_count=262144
 
 Framework'ü mevcut büyük projelerde (100K+ LOC) çalışabilir hale getirmek için planlanan özellikler:
 
-#### P0 - Critical (Core Infrastructure)
+#### P0 - Critical (Core Infrastructure) ✅ COMPLETED
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| **Repo Intelligence Indexer** | AST + Symbol + Dependency Graph extraction for codebase understanding. Multi-language support (TS/JS, Python, Java, Go). Incremental indexing with cache. | 🔲 Planned |
-| **Change Impact Engine** | Graph-based impact analysis with risk scoring. Detects affected files/modules, breaking changes, and test coverage implications. | 🔲 Planned |
-| **Context Orchestrator** | Selective file loading + hierarchical summaries (L0-L3) + source citations. Manages LLM context limits systematically. | 🔲 Planned |
+| **Repo Intelligence Indexer** | AST + Symbol + Dependency Graph extraction for codebase understanding. Multi-language support (TS/JS, Python, Go). Incremental indexing with SQLite cache. | ✅ Done |
+| **Change Impact Engine** | Graph-based impact analysis with risk scoring. Git history integration for churn analysis, blame info, and hotspot detection. | ✅ Done |
+| **Context Orchestrator** | Selective file loading + smart chunking + token budget management. Multiple strategies: full_files, smart_chunks, summaries, hybrid. | ✅ Done |
 
 #### P1 - High Priority (Workflow Enhancement)
 
