@@ -1,0 +1,28 @@
+{
+  "name": "dev-tools-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for development operations - file management, Git, code execution",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "keywords": ["mcp", "dev-tools", "git", "file-management", "sdlc"],
+  "author": "Mustafa Yıldırım",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "simple-git": "^3.27.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

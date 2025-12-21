@@ -1,0 +1,39 @@
+{
+  "name": "project-state-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for managing SDLC project state, phases, artifacts, and consensus",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "npx tsx src/seed.ts"
+  },
+  "keywords": [
+    "mcp",
+    "sdlc",
+    "orchestration",
+    "state-management"
+  ],
+  "author": "Mustafa Yıldırım",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@prisma/client": "^6.19.1",
+    "prisma": "^6.19.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

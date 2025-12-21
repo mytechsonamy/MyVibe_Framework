@@ -1,0 +1,193 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "content": "# 📈 Project Progress Dashboard\n\nReal-time task tracking, iteration status, and phase progress", "mode": "markdown" },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:task_created AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Total Tasks",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:task_completed AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Completed",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "yellow", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:phase_progress AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Phase Updates",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
+      "id": 5,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Total Events",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "id": 6,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{
+        "refId": "A",
+        "query": "project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "event_type", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } },
+          { "id": "3", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Events Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "id": 7,
+      "options": {
+        "displayLabels": ["name", "percent"],
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true, "values": ["value"] },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "event_type", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Event Type Distribution",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 15 },
+      "id": 8,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "project_name:$project",
+        "metrics": [{ "id": "1", "type": "logs" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "All Project Events",
+      "type": "logs"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["sdlc", "project", "progress"],
+  "templating": {
+    "list": [
+      {
+        "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+        "name": "project",
+        "label": "Project",
+        "type": "query",
+        "query": "{\"find\": \"terms\", \"field\": \"project_name\", \"size\": 100}",
+        "regex": "",
+        "current": { "text": "All", "value": "$__all" },
+        "includeAll": true,
+        "allValue": "*",
+        "refresh": 2,
+        "options": [],
+        "multi": false,
+        "sort": 1
+      }
+    ]
+  },
+  "time": { "from": "now-24h", "to": "now" },
+  "title": "Project Progress",
+  "uid": "sdlc-progress",
+  "version": 1
+}

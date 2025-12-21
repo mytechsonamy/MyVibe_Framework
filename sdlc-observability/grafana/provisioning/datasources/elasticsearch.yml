@@ -1,0 +1,19 @@
+apiVersion: 1
+
+datasources:
+  - name: Elasticsearch-SDLC
+    uid: elasticsearch-sdlc
+    type: elasticsearch
+    access: proxy
+    url: http://elasticsearch:9200
+    database: sdlc-logs-*
+    isDefault: true
+    jsonData:
+      timeField: "@timestamp"
+      index: sdlc-logs-*
+      esVersion: "8.0.0"
+      logMessageField: message
+      logLevelField: level
+      maxConcurrentShardRequests: 5
+      timeInterval: "10s"
+    editable: true

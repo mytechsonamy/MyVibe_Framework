@@ -1,0 +1,298 @@
+// This is your Prisma schema file for SDLC State Management
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+enum PhaseType {
+  REQUIREMENTS
+  ARCHITECTURE
+  PLANNING
+  DEVELOPMENT
+  TESTING
+  DEPLOYMENT
+}
+
+enum PhaseStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  PENDING_REVIEW
+  PENDING_HUMAN_APPROVAL
+  COMPLETED
+  FAILED
+}
+
+enum ArtifactType {
+  REQUIREMENTS
+  USER_STORIES
+  ARCHITECTURE
+  API_CONTRACTS
+  DATA_MODEL
+  EPIC_BREAKDOWN
+  TASK_LIST
+  CODE
+  TEST_PLAN
+  DOCUMENTATION
+}
+
+enum AgentType {
+  BACKEND_DOTNET
+  BACKEND_NODE
+  BACKEND_PYTHON
+  FRONTEND_REACT
+  FRONTEND_MOBILE
+  DATABASE
+  DEVOPS
+  QA_UNIT
+  QA_INTEGRATION
+  QA_E2E
+  QA_PERFORMANCE
+  SECURITY
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  BLOCKED
+}
+
+enum ConsensusStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_REVISION
+}
+
+enum QualityGateLevel {
+  L1_TASK_COMPLETION
+  L2_UNIT_TESTING
+  L3_INTEGRATION_TESTING
+  L4_E2E_TESTING
+  L5_PERFORMANCE_TESTING
+  L6_SECURITY_SCAN
+  L7_REGRESSION_TESTING
+}
+
+enum QualityGateStatus {
+  PENDING
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(ACTIVE)
+  
+  // Configuration
+  maxIterationsPerPhase Int @default(5)
+  techStack             String[] // e.g., ["dotnet", "react", "postgresql"]
+  
+  // Current state
+  currentPhaseType PhaseType @default(REQUIREMENTS)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  phases    Phase[]
+  agents    Agent[]
+  artifacts Artifact[]
+  
+  @@map("projects")
+}
+
+model Phase {
+  id        String      @id @default(uuid())
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  type      PhaseType
+  status    PhaseStatus @default(NOT_STARTED)
+  
+  // Iteration tracking
+  currentIteration Int @default(0)
+  maxIterations    Int @default(5)
+  
+  // Timestamps
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  iterations Iteration[]
+  tasks      Task[]
+  
+  @@unique([projectId, type])
+  @@map("phases")
+}
+
+model Iteration {
+  id      String @id @default(uuid())
+  phaseId String
+  phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  
+  number Int // 1, 2, 3, etc.
+  
+  // AI responses for this iteration
+  claudeOutput    String? @db.Text
+  chatgptReview   String? @db.Text
+  geminiChallenge String? @db.Text
+  
+  // Consensus
+  consensusStatus ConsensusStatus @default(PENDING)
+  consensusNotes  String?         @db.Text
+  
+  // Human approval
+  humanApproved   Boolean?
+  humanFeedback   String?  @db.Text
+  humanApprovedAt DateTime?
+  humanApprovedBy String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([phaseId, number])
+  @@map("iterations")
+}
+
+model Artifact {
+  id        String @id @default(uuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  type    ArtifactType
+  version Int          @default(1)
+  
+  // Content
+  title   String
+  content String @db.Text
+  
+  // Metadata
+  metadata Json? // Additional structured data
+  
+  // Review status
+  isApproved Boolean @default(false)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([projectId, type, version])
+  @@map("artifacts")
+}
+
+model Agent {
+  id        String @id @default(uuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  // Agent definition
+  agentType        AgentType
+  name             String
+  techStack        String[]
+  responsibilities String[]
+  systemPrompt     String    @db.Text
+  qualityGates     String[]
+  collaborators    String[]  // Agent IDs that can collaborate
+  
+  // Status
+  isActive Boolean @default(true)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  tasks Task[]
+  
+  @@map("agents")
+}
+
+model Task {
+  id      String @id @default(uuid())
+  phaseId String
+  phase   Phase  @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  
+  agentId String?
+  agent   Agent?  @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  
+  // Task definition
+  title       String
+  description String  @db.Text
+  
+  // Estimation
+  estimatedHours Float @default(4)
+  actualHours    Float?
+  
+  // Dependencies
+  dependencies String[] // Task IDs
+  
+  // Status
+  status     TaskStatus @default(PENDING)
+  retryCount Int        @default(0)
+  maxRetries Int        @default(3)
+  
+  // Output
+  output      String? @db.Text
+  errorOutput String? @db.Text
+  
+  // Timestamps
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  qualityGates QualityGate[]
+  
+  @@map("tasks")
+}
+
+model QualityGate {
+  id     String @id @default(uuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  level  QualityGateLevel
+  status QualityGateStatus @default(PENDING)
+  
+  // Results
+  details String? @db.Text // JSON with test results, coverage, etc.
+  
+  // Timestamps
+  executedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  
+  @@unique([taskId, level])
+  @@map("quality_gates")
+}

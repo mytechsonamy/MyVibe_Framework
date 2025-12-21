@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Elasticsearch - Log Storage
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: sdlc-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - sdlc-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Kibana - Log Exploration
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: sdlc-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - sdlc-network
+
+  # Grafana - Dashboards
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: sdlc-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=sdlc2024
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - sdlc-network
+
+volumes:
+  elasticsearch-data:
+  grafana-data:
+
+networks:
+  sdlc-network:
+    driver: bridge

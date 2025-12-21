@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: 'SDLC Dashboards'
+    orgId: 1
+    folder: 'SDLC'
+    folderUid: 'sdlc'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
