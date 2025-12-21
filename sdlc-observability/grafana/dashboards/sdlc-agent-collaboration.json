@@ -1,0 +1,667 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": ["sdlc", "ai"],
+      "targetBlank": false,
+      "title": "AI Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "content": "# 🤝 Agent Collaboration Visualization\n\nVisualize AI agent interactions, review flows, and collaboration patterns across the SDLC pipeline",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 3 },
+      "id": 2,
+      "options": {
+        "content": "## 🎭 Agent Roles & Activity",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text",
+      "transparent": true
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "#6E40AA", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 5 },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "textMode": "value_and_name"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "ai_name:claude AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "🧠 Claude (Orchestrator)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "#10A37F", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 5 },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "textMode": "value_and_name"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "ai_name:chatgpt AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "🔍 ChatGPT (Reviewer)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "#4285F4", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 5 },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "vertical",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "textMode": "value_and_name"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "ai_name:gemini AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "⚡ Gemini (Challenger)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.6 },
+              { "color": "green", "value": 0.8 }
+            ]
+          },
+          "max": 1,
+          "min": 0,
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 12, "y": 5 },
+      "id": 6,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:consensus_reached AND consensus_status:APPROVED AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      },
+      {
+        "refId": "B",
+        "query": "event_type:consensus_reached AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp",
+        "hide": true
+      }],
+      "title": "Consensus Success Rate",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "reduce": { "reducer": "sum" },
+            "binary": { "left": "A", "operator": "/", "right": "B" },
+            "replaceFields": true
+          }
+        }
+      ],
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2 },
+              { "color": "red", "value": 3 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 16, "y": 5 },
+      "id": 7,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:iteration_created AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "phase", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "6" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Avg Iterations/Phase",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "super-light-orange", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 5 },
+      "id": 8,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "textMode": "value_and_name"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:human_approval AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "👤 Human Approvals",
+      "type": "stat"
+    },
+    {
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 10 },
+      "id": 9,
+      "options": {
+        "content": "## 🔄 Review-Challenge-Approve Flow",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text",
+      "transparent": true
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false }
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "chatgpt" }, "properties": [{ "id": "color", "value": { "fixedColor": "#10A37F", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "gemini" }, "properties": [{ "id": "color", "value": { "fixedColor": "#4285F4", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "claude" }, "properties": [{ "id": "color", "value": { "fixedColor": "#6E40AA", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "id": 10,
+      "options": {
+        "displayLabels": ["name", "value"],
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:ai_review AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "📊 Review Distribution by Agent",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 0.5 },
+              { "color": "green", "value": 0.7 }
+            ]
+          },
+          "max": 1,
+          "min": 0,
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
+      "id": 11,
+      "options": {
+        "displayMode": "gradient",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:ai_review AND review_approved:true AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp"
+      },
+      {
+        "refId": "B",
+        "query": "event_type:ai_review AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp",
+        "hide": true
+      }],
+      "title": "✅ Approval Rate by Agent",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "reduce": { "reducer": "sum" },
+            "binary": { "left": "A", "operator": "/", "right": "B" },
+            "replaceFields": true
+          }
+        }
+      ],
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [
+            { "options": { "APPROVED": { "color": "green", "index": 0, "text": "✅ APPROVED" } }, "type": "value" },
+            { "options": { "NEEDS_REVISION": { "color": "orange", "index": 1, "text": "🔄 NEEDS REVISION" } }, "type": "value" },
+            { "options": { "REJECTED": { "color": "red", "index": 2, "text": "❌ REJECTED" } }, "type": "value" }
+          ]
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
+      "id": 12,
+      "options": {
+        "displayLabels": ["name", "percent"],
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"] },
+        "pieType": "pie",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:consensus_reached AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "consensus_status", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "🎯 Consensus Outcomes",
+      "type": "piechart"
+    },
+    {
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 20 },
+      "id": 13,
+      "options": {
+        "content": "## 💰 Token Usage & Cost Analysis",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text",
+      "transparent": true
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Tokens",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1,
+            "stacking": { "group": "A", "mode": "normal" }
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "chatgpt" }, "properties": [{ "id": "color", "value": { "fixedColor": "#10A37F", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "gemini" }, "properties": [{ "id": "color", "value": { "fixedColor": "#4285F4", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "claude" }, "properties": [{ "id": "color", "value": { "fixedColor": "#6E40AA", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "id": 14,
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["sum"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "tokens_used:* AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "sum", "field": "tokens_used" }],
+        "bucketAggs": [
+          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } },
+          { "id": "3", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1h", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "📈 Token Usage Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 100000 },
+              { "color": "red", "value": 500000 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "chatgpt" }, "properties": [{ "id": "color", "value": { "fixedColor": "#10A37F", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "gemini" }, "properties": [{ "id": "color", "value": { "fixedColor": "#4285F4", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "claude" }, "properties": [{ "id": "color", "value": { "fixedColor": "#6E40AA", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "id": 15,
+      "options": {
+        "displayMode": "lcd",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "tokens_used:* AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "sum", "field": "tokens_used" }],
+        "bucketAggs": [
+          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "🔢 Total Tokens by Agent",
+      "type": "bargauge"
+    },
+    {
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 30 },
+      "id": 16,
+      "options": {
+        "content": "## ⏱️ Review Timeline & Phase Analysis",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text",
+      "transparent": true
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "opacity",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": true,
+            "stacking": { "group": "A", "mode": "none" }
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "chatgpt" }, "properties": [{ "id": "color", "value": { "fixedColor": "#10A37F", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "gemini" }, "properties": [{ "id": "color", "value": { "fixedColor": "#4285F4", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "claude" }, "properties": [{ "id": "color", "value": { "fixedColor": "#6E40AA", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 32 },
+      "id": 17,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:ai_review AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } },
+          { "id": "3", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "🕐 Agent Activity Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 32 },
+      "id": 18,
+      "options": {
+        "displayLabels": ["name", "value"],
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:ai_review AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "phase", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "6" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "📋 Reviews by Phase",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "@timestamp" },
+            "properties": [
+              { "id": "displayName", "value": "Time" },
+              { "id": "custom.width", "value": 180 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "ai_name" },
+            "properties": [
+              { "id": "displayName", "value": "Agent" },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "claude": { "color": "#6E40AA", "text": "🧠 Claude" } } },
+                { "type": "value", "options": { "chatgpt": { "color": "#10A37F", "text": "🔍 ChatGPT" } } },
+                { "type": "value", "options": { "gemini": { "color": "#4285F4", "text": "⚡ Gemini" } } }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "review_approved" },
+            "properties": [
+              { "id": "displayName", "value": "Result" },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "true": { "color": "green", "text": "✅ Approved" } } },
+                { "type": "value", "options": { "false": { "color": "orange", "text": "🔄 Needs Work" } } }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "phase" },
+            "properties": [{ "id": "displayName", "value": "Phase" }]
+          },
+          {
+            "matcher": { "id": "byName", "options": "artifact_type" },
+            "properties": [{ "id": "displayName", "value": "Artifact" }]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 40 },
+      "id": 19,
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false, "reducer": ["sum"] },
+        "sortBy": [{ "desc": true, "displayName": "Time" }]
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:ai_review AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "raw_data", "settings": { "size": "100" } }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "📜 Recent AI Reviews",
+      "type": "table"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["sdlc", "ai", "collaboration", "agents"],
+  "templating": {
+    "list": [
+      {
+        "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+        "name": "project",
+        "label": "Project",
+        "type": "query",
+        "query": "{\"find\": \"terms\", \"field\": \"project_name\", \"size\": 100}",
+        "regex": "",
+        "current": { "text": "All", "value": "$__all" },
+        "includeAll": true,
+        "allValue": "*",
+        "refresh": 2,
+        "options": [],
+        "multi": false,
+        "sort": 1
+      }
+    ]
+  },
+  "time": { "from": "now-7d", "to": "now" },
+  "title": "Agent Collaboration Visualization",
+  "uid": "sdlc-agent-collab",
+  "version": 1
+}

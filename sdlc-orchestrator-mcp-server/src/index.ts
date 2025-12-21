@@ -23,7 +23,9 @@ import {
   ValidateAgentsSchema,
   GetAgentContextSchema,
   GenerateDocsSchema,
-  GenerateChangelogSchema
+  GenerateChangelogSchema,
+  RollbackSchema,
+  CheckDeploymentHealthSchema
 } from "./schemas/orchestrator.js";
 
 import {
@@ -1466,6 +1468,290 @@ server.tool(
 );
 
 // ============================================================================
+// TOOL: sdlc_rollback
+// ============================================================================
+
+server.tool(
+  "sdlc_rollback",
+  "Rollback a failed deployment to a previous stable state. Creates a revert commit or resets to a specific tag/commit.",
+  RollbackSchema.shape,
+  async (params) => {
+    try {
+      const { projectId, workspacePath, reason, targetCommit, strategy } = params;
+
+      const rollbackSequence = {
+        description: "Automated Deployment Rollback",
+        reason,
+        strategy,
+
+        preChecks: [
+          {
+            step: 1,
+            action: "Get current git status",
+            tool: "dev_git_status",
+            params: { projectId },
+            purpose: "Ensure clean working directory before rollback"
+          },
+          {
+            step: 2,
+            action: "List deployment tags",
+            tool: "dev_git_list_tags",
+            params: { projectId },
+            purpose: "Find available rollback points"
+          },
+          {
+            step: 3,
+            action: "Get recent commits",
+            tool: "dev_git_log",
+            params: { projectId, limit: 20 },
+            purpose: "Identify commits to rollback"
+          }
+        ],
+
+        rollbackSteps: strategy === "revert" ? [
+          {
+            step: 4,
+            action: "Analyze diff for rollback",
+            tool: "dev_git_diff",
+            params: {
+              projectId,
+              fromCommit: targetCommit || "{{PREVIOUS_DEPLOY_TAG}}",
+              toCommit: "HEAD"
+            },
+            purpose: "Understand what will be reverted"
+          },
+          {
+            step: 5,
+            action: "Revert commits (safe - creates new commit)",
+            tool: "dev_git_revert",
+            params: {
+              projectId,
+              commitHash: targetCommit || "HEAD",
+              noCommit: false
+            },
+            purpose: "Safely undo changes while preserving history"
+          },
+          {
+            step: 6,
+            action: "Tag the rollback",
+            tool: "dev_git_tag",
+            params: {
+              projectId,
+              name: `rollback-${new Date().toISOString().split('T')[0]}-${Date.now()}`,
+              message: `Rollback: ${reason}`
+            },
+            purpose: "Mark the rollback point for future reference"
+          }
+        ] : [
+          {
+            step: 4,
+            action: "Reset to target (DESTRUCTIVE)",
+            tool: "dev_git_reset",
+            params: {
+              projectId,
+              commitHash: targetCommit || "{{PREVIOUS_DEPLOY_TAG}}",
+              mode: "hard"
+            },
+            warning: "This will discard all changes since the target commit!",
+            purpose: "Hard reset to known good state"
+          }
+        ],
+
+        postRollback: [
+          {
+            step: 7,
+            action: "Verify rollback",
+            tool: "dev_git_status",
+            params: { projectId },
+            purpose: "Confirm clean state after rollback"
+          },
+          {
+            step: 8,
+            action: "Run build to verify",
+            tool: "dev_run_build",
+            params: { projectId },
+            purpose: "Ensure code builds successfully"
+          },
+          {
+            step: 9,
+            action: "Run tests to verify",
+            tool: "dev_run_tests",
+            params: { projectId },
+            purpose: "Ensure tests pass after rollback"
+          }
+        ],
+
+        logging: {
+          event: "deployment_rollback",
+          data: {
+            projectId,
+            reason,
+            strategy,
+            targetCommit,
+            timestamp: new Date().toISOString()
+          }
+        }
+      };
+
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            success: true,
+            message: "Execute this rollback sequence:",
+            rollbackSequence,
+            warning: strategy === "reset"
+              ? "⚠️ DESTRUCTIVE: Reset will permanently discard commits. Use 'revert' for safer rollback."
+              : "✅ Safe rollback using revert strategy",
+            automationNote: "After rollback, re-run health checks with sdlc_check_deployment_health"
+          }, null, 2)
+        }]
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            success: false,
+            error: errorMessage
+          }, null, 2)
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+// ============================================================================
+// TOOL: sdlc_check_deployment_health
+// ============================================================================
+
+server.tool(
+  "sdlc_check_deployment_health",
+  "Run health checks on a deployment. If checks fail, returns rollback recommendation.",
+  CheckDeploymentHealthSchema.shape,
+  async (params) => {
+    try {
+      const { projectId, workspacePath, checks, customCommand, healthEndpoint } = params;
+
+      const healthCheckSequence = {
+        description: "Deployment Health Check",
+        checks: checks.map((check, index) => {
+          switch (check) {
+            case "build":
+              return {
+                step: index + 1,
+                name: "Build Check",
+                tool: "dev_run_build",
+                params: { projectId },
+                successCriteria: "Build completes without errors",
+                failureAction: "ROLLBACK_RECOMMENDED"
+              };
+            case "tests":
+              return {
+                step: index + 1,
+                name: "Test Suite",
+                tool: "dev_run_tests",
+                params: { projectId },
+                successCriteria: "All tests pass",
+                failureAction: "ROLLBACK_RECOMMENDED"
+              };
+            case "health_endpoint":
+              return {
+                step: index + 1,
+                name: "Health Endpoint",
+                tool: "dev_exec_command",
+                params: {
+                  projectId,
+                  command: `curl -sf ${healthEndpoint || 'http://localhost:3000/health'} || exit 1`,
+                  timeout: 30000
+                },
+                successCriteria: "Endpoint returns 2xx",
+                failureAction: "ROLLBACK_RECOMMENDED"
+              };
+            case "custom_command":
+              return {
+                step: index + 1,
+                name: "Custom Health Check",
+                tool: "dev_exec_command",
+                params: {
+                  projectId,
+                  command: customCommand || "echo 'No custom command specified'",
+                  timeout: 60000
+                },
+                successCriteria: "Command exits with 0",
+                failureAction: "ROLLBACK_RECOMMENDED"
+              };
+            default:
+              return null;
+          }
+        }).filter(Boolean),
+
+        evaluationLogic: {
+          allPass: {
+            result: "HEALTHY",
+            action: "Continue normal operation",
+            log: { event: "health_check_passed", status: "success" }
+          },
+          anyFail: {
+            result: "UNHEALTHY",
+            action: "Trigger automatic rollback",
+            sequence: [
+              "1. Log the failure with details",
+              "2. Call sdlc_rollback with reason from failed check",
+              "3. Notify stakeholders (if notification system configured)",
+              "4. Re-run health checks after rollback"
+            ],
+            log: { event: "health_check_failed", status: "failure" }
+          }
+        },
+
+        autoRollbackTrigger: {
+          enabled: true,
+          description: "If any critical check fails, automatically initiate rollback",
+          criticalChecks: ["build", "tests"],
+          rollbackParams: {
+            projectId,
+            workspacePath,
+            reason: "Automated rollback due to failed health checks",
+            strategy: "revert"
+          }
+        }
+      };
+
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            success: true,
+            message: "Execute health checks in order:",
+            healthCheckSequence,
+            automationNote: "If any check fails, automatically call sdlc_rollback with the failure reason",
+            postCheckActions: {
+              onSuccess: "Log success and continue",
+              onFailure: "Trigger sdlc_rollback with strategy='revert'"
+            }
+          }, null, 2)
+        }]
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            success: false,
+            error: errorMessage
+          }, null, 2)
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+// ============================================================================
 // START SERVER
 // ============================================================================
 
@@ -1474,7 +1760,7 @@ async function main() {
   await server.connect(transport);
 
   console.error("SDLC Orchestrator MCP Server started");
-  console.error("Tools: sdlc_init, sdlc_status, sdlc_continue, sdlc_review, sdlc_sprint, sdlc_next, sdlc_help, sdlc_validate_advance, sdlc_run_ai_review, sdlc_get_agents, sdlc_get_agent_context, sdlc_validate_agents, sdlc_generate_docs, sdlc_generate_changelog");
+  console.error("Tools: sdlc_init, sdlc_status, sdlc_continue, sdlc_review, sdlc_sprint, sdlc_next, sdlc_help, sdlc_validate_advance, sdlc_run_ai_review, sdlc_get_agents, sdlc_get_agent_context, sdlc_validate_agents, sdlc_generate_docs, sdlc_generate_changelog, sdlc_rollback, sdlc_check_deployment_health");
 }
 
 main().catch((error) => {

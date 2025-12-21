@@ -1,0 +1,422 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": ["sdlc"],
+      "targetBlank": false,
+      "title": "SDLC Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "content": "# 🌐 Multi-Project Dashboard\n\nCentralized view of all SDLC projects - monitor progress, compare metrics, and track team velocity",
+        "mode": "markdown"
+      },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "mappings": []
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 3 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["count"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:project_created",
+        "metrics": [{ "id": "1", "type": "cardinality", "field": "project_name" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "Total Projects",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 3 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:phase_transition",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "Phase Transitions",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 3 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:iteration_created",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "Total Iterations",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "yellow", "value": 50 },
+            { "color": "green", "value": 80 }
+          ]}
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 3 },
+      "id": 5,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false }, "textMode": "auto", "showPercentChange": false },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:consensus_reached AND consensus_status:APPROVED",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      },
+      {
+        "refId": "B",
+        "query": "event_type:consensus_reached",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp",
+        "hide": true
+      }],
+      "title": "Consensus Rate %",
+      "transformations": [
+        {
+          "id": "calculateField",
+          "options": {
+            "mode": "binary",
+            "reduce": { "reducer": "sum" },
+            "binary": { "left": "A", "operator": "/", "right": "B" },
+            "replaceFields": true
+          }
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 3 },
+      "id": 6,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:task_completed",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "Tasks Completed",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "semi-dark-green", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 3 },
+      "id": 7,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:quality_gate AND quality_gate_passed:true",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "Quality Gates Passed",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": { "type": "auto" },
+            "inspect": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "project_name" },
+            "properties": [
+              { "id": "displayName", "value": "Project" },
+              { "id": "custom.width", "value": 200 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "current_phase" },
+            "properties": [
+              { "id": "displayName", "value": "Phase" },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+              { "id": "mappings", "value": [
+                { "type": "value", "options": { "REQUIREMENTS": { "color": "blue", "text": "📋 REQUIREMENTS" } } },
+                { "type": "value", "options": { "ARCHITECTURE": { "color": "purple", "text": "🏛️ ARCHITECTURE" } } },
+                { "type": "value", "options": { "PLANNING": { "color": "orange", "text": "📝 PLANNING" } } },
+                { "type": "value", "options": { "DEVELOPMENT": { "color": "yellow", "text": "💻 DEVELOPMENT" } } },
+                { "type": "value", "options": { "TESTING": { "color": "green", "text": "🧪 TESTING" } } },
+                { "type": "value", "options": { "DEPLOYMENT": { "color": "semi-dark-green", "text": "🚀 DEPLOYMENT" } } }
+              ]}
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "iterations" },
+            "properties": [
+              { "id": "displayName", "value": "Iterations" },
+              { "id": "custom.width", "value": 100 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "last_activity" },
+            "properties": [
+              { "id": "displayName", "value": "Last Activity" },
+              { "id": "unit", "value": "dateTimeAsIso" }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "id": 8,
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": { "show": false, "reducer": ["sum"] },
+        "sortBy": [{ "desc": true, "displayName": "Last Activity" }]
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:(project_created OR phase_transition OR iteration_created)",
+        "metrics": [
+          { "id": "1", "type": "cardinality", "field": "iteration_number", "settings": {} },
+          { "id": "2", "type": "top_metrics", "settings": { "order": "desc", "orderBy": "@timestamp", "metrics": ["current_phase", "@timestamp"] } }
+        ],
+        "bucketAggs": [
+          { "id": "3", "field": "project_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "50" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "📊 All Projects Status",
+      "type": "table"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "id": 9,
+      "options": {
+        "displayLabels": ["name", "percent"],
+        "legend": { "displayMode": "table", "placement": "right", "showLegend": true, "values": ["value", "percent"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true },
+        "tooltip": { "mode": "single", "sort": "none" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:phase_transition",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "current_phase", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "6" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "📈 Phase Distribution (All Projects)",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineWidth": 1,
+            "stacking": { "group": "A", "mode": "normal" }
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 15 },
+      "id": 10,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "_exists_:project_name",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "project_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "20" } },
+          { "id": "3", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "📅 Project Activity Timeline",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "pointSize": 5,
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
+      "id": 11,
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:task_completed",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "project_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } },
+          { "id": "3", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "⚡ Task Completion Velocity",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "green", "value": 0.8 }
+            ]
+          },
+          "max": 1,
+          "min": 0
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
+      "id": 12,
+      "options": {
+        "displayMode": "lcd",
+        "minVizHeight": 10,
+        "minVizWidth": 0,
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:quality_gate",
+        "metrics": [{ "id": "1", "type": "avg", "field": "quality_gate_passed" }],
+        "bucketAggs": [
+          { "id": "2", "field": "project_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "🎯 Quality Gate Pass Rate by Project",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 31 },
+      "id": 13,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:(project_created OR phase_transition OR consensus_reached OR human_approval OR sprint_completed)",
+        "metrics": [{ "id": "1", "type": "logs" }],
+        "bucketAggs": [],
+        "timeField": "@timestamp"
+      }],
+      "title": "📜 Recent Key Events (All Projects)",
+      "type": "logs"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["sdlc", "multi-project", "overview"],
+  "templating": { "list": [] },
+  "time": { "from": "now-7d", "to": "now" },
+  "title": "SDLC Multi-Project Dashboard",
+  "uid": "sdlc-multi-project",
+  "version": 1
+}

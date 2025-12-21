@@ -170,6 +170,26 @@ export const GenerateChangelogSchema = z.object({
   })).describe("List of changes")
 }).strict();
 
+// Rollback deployment
+export const RollbackSchema = z.object({
+  projectId: z.string().describe("The project ID"),
+  workspacePath: z.string().describe("Project workspace path"),
+  reason: z.string().describe("Reason for rollback"),
+  targetCommit: z.string().optional().describe("Specific commit hash to rollback to (default: previous deployment tag)"),
+  strategy: z.enum(["revert", "reset"]).default("revert").describe("Rollback strategy: revert (safe, creates new commit) or reset (destructive)")
+}).strict();
+
+// Check deployment health
+export const CheckDeploymentHealthSchema = z.object({
+  projectId: z.string().describe("The project ID"),
+  workspacePath: z.string().describe("Project workspace path"),
+  checks: z.array(z.enum([
+    "build", "tests", "health_endpoint", "custom_command"
+  ])).default(["build", "tests"]).describe("Health checks to run"),
+  customCommand: z.string().optional().describe("Custom health check command (required if 'custom_command' in checks)"),
+  healthEndpoint: z.string().optional().describe("Health endpoint URL (required if 'health_endpoint' in checks)")
+}).strict();
+
 // Export types
 export type InitProjectInput = z.infer<typeof InitProjectSchema>;
 export type StatusInput = z.infer<typeof StatusSchema>;
@@ -178,3 +198,5 @@ export type ReviewCycleInput = z.infer<typeof ReviewCycleSchema>;
 export type SprintSummaryInput = z.infer<typeof SprintSummarySchema>;
 export type ParseCommandInput = z.infer<typeof ParseCommandSchema>;
 export type NextActionInput = z.infer<typeof NextActionSchema>;
+export type RollbackInput = z.infer<typeof RollbackSchema>;
+export type CheckDeploymentHealthInput = z.infer<typeof CheckDeploymentHealthSchema>;

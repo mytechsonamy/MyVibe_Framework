@@ -23,7 +23,12 @@ import {
   gitLog,
   gitBranches,
   gitCreateBranch,
-  gitCheckout
+  gitCheckout,
+  gitRevert,
+  gitReset,
+  gitTag,
+  gitListTags,
+  gitDiff
 } from "./services/git.js";
 
 import {
@@ -42,6 +47,11 @@ import {
   GitLogSchema,
   GitBranchSchema,
   GitCheckoutSchema,
+  GitRevertSchema,
+  GitResetSchema,
+  GitTagSchema,
+  GitListTagsSchema,
+  GitDiffSchema,
   ExecCommandSchema,
   RunTestsSchema,
   RunBuildSchema,
@@ -330,6 +340,81 @@ server.tool(
       const workspacePath = await ensureWorkspace(params.projectId);
       const result = await gitCheckout(workspacePath, params.branch);
       return { content: [{ type: "text", text: JSON.stringify({ success: result.success, message: result.message }, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: JSON.stringify({ success: false, error: String(error) }) }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "dev_git_revert",
+  "Revert a commit (creates a new commit that undoes changes - safe for shared branches)",
+  GitRevertSchema.shape,
+  async (params) => {
+    try {
+      const workspacePath = await ensureWorkspace(params.projectId);
+      const result = await gitRevert(workspacePath, params.commitHash, params.noCommit);
+      return { content: [{ type: "text", text: JSON.stringify({ success: result.success, message: result.message, revertHash: result.revertHash }, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: JSON.stringify({ success: false, error: String(error) }) }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "dev_git_reset",
+  "Reset to a specific commit (CAUTION: can be destructive with 'hard' mode)",
+  GitResetSchema.shape,
+  async (params) => {
+    try {
+      const workspacePath = await ensureWorkspace(params.projectId);
+      const result = await gitReset(workspacePath, params.commitHash, params.mode);
+      return { content: [{ type: "text", text: JSON.stringify({ success: result.success, message: result.message }, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: JSON.stringify({ success: false, error: String(error) }) }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "dev_git_tag",
+  "Create a git tag (useful for marking deployments like 'deploy-v1.0.0')",
+  GitTagSchema.shape,
+  async (params) => {
+    try {
+      const workspacePath = await ensureWorkspace(params.projectId);
+      const result = await gitTag(workspacePath, params.name, params.message, params.commitHash);
+      return { content: [{ type: "text", text: JSON.stringify({ success: result.success, message: result.message }, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: JSON.stringify({ success: false, error: String(error) }) }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "dev_git_list_tags",
+  "List all git tags (useful for finding rollback points)",
+  GitListTagsSchema.shape,
+  async (params) => {
+    try {
+      const workspacePath = await ensureWorkspace(params.projectId);
+      const result = await gitListTags(workspacePath);
+      return { content: [{ type: "text", text: JSON.stringify({ success: result.success, tags: result.tags, count: result.tags.length }, null, 2) }] };
+    } catch (error) {
+      return { content: [{ type: "text", text: JSON.stringify({ success: false, error: String(error) }) }], isError: true };
+    }
+  }
+);
+
+server.tool(
+  "dev_git_diff",
+  "Get diff between two commits (useful for analyzing what to rollback)",
+  GitDiffSchema.shape,
+  async (params) => {
+    try {
+      const workspacePath = await ensureWorkspace(params.projectId);
+      const result = await gitDiff(workspacePath, params.fromCommit, params.toCommit);
+      return { content: [{ type: "text", text: JSON.stringify({ success: result.success, filesChanged: result.filesChanged, diff: result.diff.substring(0, 5000) + (result.diff.length > 5000 ? "\n... (truncated)" : "") }, null, 2) }] };
     } catch (error) {
       return { content: [{ type: "text", text: JSON.stringify({ success: false, error: String(error) }) }], isError: true };
     }

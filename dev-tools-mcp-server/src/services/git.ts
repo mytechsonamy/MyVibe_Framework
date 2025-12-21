@@ -161,12 +161,121 @@ export async function gitCreateBranch(
 // Checkout branch
 export async function gitCheckout(workspacePath: string, branchName: string): Promise<{ success: boolean; message: string }> {
   const git = getGit(workspacePath);
-  
+
   try {
     await git.checkout(branchName);
     return { success: true, message: `Checked out branch '${branchName}'` };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return { success: false, message: `Git checkout failed: ${message}` };
+  }
+}
+
+// Revert a commit (creates a new commit that undoes changes)
+export async function gitRevert(
+  workspacePath: string,
+  commitHash: string,
+  noCommit: boolean = false
+): Promise<{ success: boolean; message: string; revertHash?: string }> {
+  const git = getGit(workspacePath);
+
+  try {
+    const options = noCommit ? ["--no-commit", commitHash] : [commitHash];
+    await git.revert(options);
+
+    if (noCommit) {
+      return { success: true, message: `Reverted ${commitHash} (staged, not committed)` };
+    }
+
+    const log = await git.log({ maxCount: 1 });
+    return {
+      success: true,
+      message: `Reverted ${commitHash}`,
+      revertHash: log.latest?.hash.substring(0, 7)
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Git revert failed: ${message}` };
+  }
+}
+
+// Reset to a specific commit (destructive - use with caution)
+export async function gitReset(
+  workspacePath: string,
+  commitHash: string,
+  mode: "soft" | "mixed" | "hard" = "mixed"
+): Promise<{ success: boolean; message: string }> {
+  const git = getGit(workspacePath);
+
+  try {
+    await git.reset([`--${mode}`, commitHash]);
+    return { success: true, message: `Reset to ${commitHash} (${mode})` };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Git reset failed: ${message}` };
+  }
+}
+
+// Create a tag (useful for marking deployments)
+export async function gitTag(
+  workspacePath: string,
+  tagName: string,
+  message?: string,
+  commitHash?: string
+): Promise<{ success: boolean; message: string }> {
+  const git = getGit(workspacePath);
+
+  try {
+    const options: string[] = [];
+    if (message) {
+      options.push("-a", tagName, "-m", message);
+    } else {
+      options.push(tagName);
+    }
+    if (commitHash) {
+      options.push(commitHash);
+    }
+
+    await git.tag(options);
+    return { success: true, message: `Created tag '${tagName}'` };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Git tag failed: ${message}` };
+  }
+}
+
+// List tags
+export async function gitListTags(workspacePath: string): Promise<{
+  success: boolean;
+  tags: string[];
+}> {
+  const git = getGit(workspacePath);
+
+  try {
+    const result = await git.tags();
+    return { success: true, tags: result.all };
+  } catch (error) {
+    return { success: false, tags: [] };
+  }
+}
+
+// Get diff between commits (useful for rollback analysis)
+export async function gitDiff(
+  workspacePath: string,
+  fromCommit: string,
+  toCommit: string = "HEAD"
+): Promise<{ success: boolean; diff: string; filesChanged: number }> {
+  const git = getGit(workspacePath);
+
+  try {
+    const diff = await git.diff([fromCommit, toCommit]);
+    const diffStat = await git.diffSummary([fromCommit, toCommit]);
+    return {
+      success: true,
+      diff,
+      filesChanged: diffStat.files.length
+    };
+  } catch (error) {
+    return { success: false, diff: "", filesChanged: 0 };
   }
 }

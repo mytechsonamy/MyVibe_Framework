@@ -90,6 +90,35 @@ export const GitCheckoutSchema = z.object({
   branch: z.string().min(1).describe("Branch name to checkout")
 }).strict();
 
+export const GitRevertSchema = z.object({
+  projectId: z.string().uuid().describe("Project UUID"),
+  commitHash: z.string().min(4).describe("Commit hash to revert"),
+  noCommit: z.boolean().default(false).describe("Stage changes but don't commit (allows reviewing before commit)")
+}).strict();
+
+export const GitResetSchema = z.object({
+  projectId: z.string().uuid().describe("Project UUID"),
+  commitHash: z.string().min(4).describe("Commit hash to reset to"),
+  mode: z.enum(["soft", "mixed", "hard"]).default("mixed").describe("Reset mode: soft (keep staged), mixed (unstage), hard (discard all)")
+}).strict();
+
+export const GitTagSchema = z.object({
+  projectId: z.string().uuid().describe("Project UUID"),
+  name: z.string().min(1).describe("Tag name (e.g., 'v1.0.0', 'deploy-2024-01-15')"),
+  message: z.string().optional().describe("Tag message (creates annotated tag)"),
+  commitHash: z.string().optional().describe("Commit to tag (default: HEAD)")
+}).strict();
+
+export const GitListTagsSchema = z.object({
+  projectId: z.string().uuid().describe("Project UUID")
+}).strict();
+
+export const GitDiffSchema = z.object({
+  projectId: z.string().uuid().describe("Project UUID"),
+  fromCommit: z.string().min(4).describe("Starting commit hash"),
+  toCommit: z.string().default("HEAD").describe("Ending commit hash (default: HEAD)")
+}).strict();
+
 // ============================================================================
 // EXEC SCHEMAS
 // ============================================================================
@@ -134,6 +163,11 @@ export type GitCommitInput = z.infer<typeof GitCommitSchema>;
 export type GitLogInput = z.infer<typeof GitLogSchema>;
 export type GitBranchInput = z.infer<typeof GitBranchSchema>;
 export type GitCheckoutInput = z.infer<typeof GitCheckoutSchema>;
+export type GitRevertInput = z.infer<typeof GitRevertSchema>;
+export type GitResetInput = z.infer<typeof GitResetSchema>;
+export type GitTagInput = z.infer<typeof GitTagSchema>;
+export type GitListTagsInput = z.infer<typeof GitListTagsSchema>;
+export type GitDiffInput = z.infer<typeof GitDiffSchema>;
 export type ExecCommandInput = z.infer<typeof ExecCommandSchema>;
 export type RunTestsInput = z.infer<typeof RunTestsSchema>;
 export type RunBuildInput = z.infer<typeof RunBuildSchema>;

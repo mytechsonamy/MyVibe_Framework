@@ -108,6 +108,8 @@ The brain of the framework. Orchestrates all other servers and guides the workfl
 | `sdlc_validate_agents` | Validate all required agents are registered |
 | `sdlc_generate_docs` | Generate phase documentation |
 | `sdlc_generate_changelog` | Generate changelog from iterations |
+| `sdlc_rollback` | Rollback failed deployment (revert or reset) |
+| `sdlc_check_deployment_health` | Run health checks, auto-rollback on failure |
 
 ### 2. AI Gateway MCP Server
 **Location**: `ai-gateway-mcp-server/`
@@ -179,6 +181,11 @@ File system and Git operations for development.
 | `dev_git_log` | View history |
 | `dev_git_branch` | Manage branches |
 | `dev_git_checkout` | Switch branch |
+| `dev_git_revert` | Revert a commit (safe rollback) |
+| `dev_git_reset` | Reset to commit (destructive rollback) |
+| `dev_git_tag` | Create deployment tags |
+| `dev_git_list_tags` | List available tags |
+| `dev_git_diff` | Compare commits for rollback analysis |
 | `dev_exec_command` | Run shell command |
 | `dev_run_tests` | Run tests |
 | `dev_run_build` | Build project |
@@ -579,10 +586,10 @@ sudo sysctl -w vm.max_map_count=262144
 - [x] Project-specific agent definitions (docs/agents/*.md)
 - [x] Dynamic max iteration configuration
 
-### In Progress
-- [ ] Multi-project dashboard
-- [ ] Agent collaboration visualization
-- [ ] Automated rollback on failed deployments
+### Recently Completed
+- [x] Multi-project dashboard (`sdlc-multi-project.json`)
+- [x] Agent collaboration visualization (`sdlc-agent-collaboration.json`)
+- [x] Automated rollback on failed deployments (`sdlc_rollback`, `sdlc_check_deployment_health`)
 
 ### Brownfield Support (Existing Large Codebase Adaptation)
 
