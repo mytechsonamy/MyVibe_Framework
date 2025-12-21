@@ -1,0 +1,20 @@
+{
+  "name": "hotspot-analyzer-mcp-server",
+  "version": "1.0.0",
+  "description": "Hotspot & Ownership Analyzer MCP Server - Git churn, bug-prone detection, ownership mapping",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0"
+  }
+}
