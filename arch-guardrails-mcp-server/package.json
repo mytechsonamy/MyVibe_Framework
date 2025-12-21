@@ -1,0 +1,23 @@
+{
+  "name": "arch-guardrails-mcp-server",
+  "version": "1.0.0",
+  "description": "Architecture-level linting and enforcement of coding patterns",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "arch-guardrails": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.3"
+  }
+}

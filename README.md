@@ -221,7 +221,61 @@ Intelligent context selection and token budget management for large codebases.
 | `context_chunk_file` | Split file into semantic chunks |
 | `context_estimate_tokens` | Estimate token counts for files |
 
-### 7. Observability Stack
+### 7. Delivery Planner MCP Server
+**Location**: `delivery-planner-mcp-server/`
+
+Incremental delivery planning - slices large changes into reviewable PRs.
+
+| Tool | Description |
+|------|-------------|
+| `delivery_analyze_changes` | Analyze changes between branches |
+| `delivery_detect_breaking` | Detect breaking changes in files |
+| `delivery_slice_changes` | Slice changes into PR chunks |
+| `delivery_generate_flags` | Generate feature flag definitions |
+| `delivery_generate_flag_code` | Generate flag code snippets |
+| `delivery_create_rollout` | Create rollout plan with stages |
+| `delivery_rollback_plan` | Generate rollback procedures |
+| `delivery_compatibility_plan` | Generate backwards compatibility plan |
+| `delivery_create_plan` | Create complete delivery plan |
+| `delivery_validate_plan` | Validate delivery plan |
+
+### 8. Test Intelligence MCP Server
+**Location**: `test-intelligence-mcp-server/`
+
+Smart test selection and flaky test detection.
+
+| Tool | Description |
+|------|-------------|
+| `test_discover` | Discover all test files |
+| `test_analyze_file` | Analyze test cases in a file |
+| `test_select` | Select tests based on changed files |
+| `test_impacted` | Get tests impacted by changes |
+| `test_detect_flaky` | Detect flaky tests from history |
+| `test_quarantine` | Quarantine flaky tests |
+| `test_coverage` | Analyze code coverage |
+| `test_coverage_gaps` | Find files with low coverage |
+| `test_health` | Get test suite health score |
+| `test_record_run` | Record test run results |
+| `test_history` | Get test run history |
+
+### 9. Architecture Guardrails MCP Server
+**Location**: `arch-guardrails-mcp-server/`
+
+Architecture-level linting and enforcement.
+
+| Tool | Description |
+|------|-------------|
+| `arch_init` | Initialize config with preset |
+| `arch_load_config` | Load existing config |
+| `arch_update_rule` | Update rule configuration |
+| `arch_analyze` | Run architecture analysis |
+| `arch_analyze_layers` | Analyze layer dependencies |
+| `arch_find_circular` | Find circular dependencies |
+| `arch_check_security` | Run security checks |
+| `arch_report` | Generate analysis report |
+| `arch_score` | Get architecture health score |
+
+### 10. Observability Stack
 **Location**: `sdlc-observability/`
 
 Real-time monitoring with Elasticsearch, Kibana, and Grafana.
@@ -654,13 +708,13 @@ Framework'ü mevcut büyük projelerde (100K+ LOC) çalışabilir hale getirmek 
 | **Change Impact Engine** | Graph-based impact analysis with risk scoring. Git history integration for churn analysis, blame info, and hotspot detection. | ✅ Done |
 | **Context Orchestrator** | Selective file loading + smart chunking + token budget management. Multiple strategies: full_files, smart_chunks, summaries, hybrid. | ✅ Done |
 
-#### P1 - High Priority (Workflow Enhancement)
+#### P1 - High Priority (Workflow Enhancement) ✅ COMPLETED
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| **Incremental Delivery Planner** | Slices large changes into reviewable PRs. Feature flag strategies, backwards compatibility playbooks, rollout plans. | 🔲 Planned |
-| **Test Intelligence Layer** | Impact-based test selection, flaky test management, coverage gap detection, mutation testing support. | 🔲 Planned |
-| **Architecture Guardrails** | Linter-like rules at architecture level. Enforces layer boundaries, coding patterns, and project conventions. | 🔲 Planned |
+| **Incremental Delivery Planner** | Slices large changes into reviewable PRs. Feature flag strategies, backwards compatibility playbooks, rollout plans. | ✅ Done |
+| **Test Intelligence Layer** | Impact-based test selection, flaky test management, coverage gap detection, mutation testing support. | ✅ Done |
+| **Architecture Guardrails** | Linter-like rules at architecture level. Enforces layer boundaries, coding patterns, and project conventions. | ✅ Done |
 
 #### P2 - Medium Priority (Integration & Analytics)
 

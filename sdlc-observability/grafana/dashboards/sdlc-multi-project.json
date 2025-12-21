@@ -42,7 +42,9 @@
         "refId": "A",
         "query": "event_type:project_created",
         "metrics": [{ "id": "1", "type": "cardinality", "field": "project_name" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "Total Projects",
@@ -62,7 +64,9 @@
         "refId": "A",
         "query": "event_type:phase_transition",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "Phase Transitions",
@@ -82,7 +86,9 @@
         "refId": "A",
         "query": "event_type:iteration_created",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "Total Iterations",
@@ -106,14 +112,18 @@
         "refId": "A",
         "query": "event_type:consensus_reached AND consensus_status:APPROVED",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       },
       {
         "refId": "B",
         "query": "event_type:consensus_reached",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp",
         "hide": true
       }],
@@ -145,7 +155,9 @@
         "refId": "A",
         "query": "event_type:task_completed",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "Tasks Completed",
@@ -163,9 +175,11 @@
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false }, "textMode": "auto" },
       "targets": [{
         "refId": "A",
-        "query": "event_type:quality_gate AND quality_gate_passed:true",
+        "query": "event_type:quality_gate AND passed:true",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "Quality Gates Passed",
@@ -230,14 +244,9 @@
       },
       "targets": [{
         "refId": "A",
-        "query": "event_type:(project_created OR phase_transition OR iteration_created)",
-        "metrics": [
-          { "id": "1", "type": "cardinality", "field": "iteration_number", "settings": {} },
-          { "id": "2", "type": "top_metrics", "settings": { "order": "desc", "orderBy": "@timestamp", "metrics": ["current_phase", "@timestamp"] } }
-        ],
-        "bucketAggs": [
-          { "id": "3", "field": "project_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "50" } }
-        ],
+        "query": "event_type:phase_status",
+        "metrics": [{ "id": "1", "type": "raw_data", "settings": { "size": "100" } }],
+        "bucketAggs": [],
         "timeField": "@timestamp"
       }],
       "title": "📊 All Projects Status",
@@ -257,10 +266,10 @@
       },
       "targets": [{
         "refId": "A",
-        "query": "event_type:phase_transition",
+        "query": "event_type:phase_status",
         "metrics": [{ "id": "1", "type": "count" }],
         "bucketAggs": [
-          { "id": "2", "field": "current_phase", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "6" } }
+          { "id": "2", "field": "phase", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "6" } }
         ],
         "timeField": "@timestamp"
       }],
@@ -403,8 +412,10 @@
       "targets": [{
         "refId": "A",
         "query": "event_type:(project_created OR phase_transition OR consensus_reached OR human_approval OR sprint_completed)",
-        "metrics": [{ "id": "1", "type": "logs" }],
-        "bucketAggs": [],
+        "metrics": [{ "id": "1", "type": "logs", "settings": { "limit": "100" } }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "📜 Recent Key Events (All Projects)",

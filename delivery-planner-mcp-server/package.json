@@ -1,0 +1,23 @@
+{
+  "name": "delivery-planner-mcp-server",
+  "version": "1.0.0",
+  "description": "Incremental delivery planning - slice large changes into reviewable PRs",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "delivery-planner": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.3"
+  }
+}

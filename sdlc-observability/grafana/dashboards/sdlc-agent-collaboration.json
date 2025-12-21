@@ -60,7 +60,9 @@
         "refId": "A",
         "query": "ai_name:claude AND project_name:$project",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "🧠 Claude (Orchestrator)",
@@ -88,7 +90,9 @@
         "refId": "A",
         "query": "ai_name:chatgpt AND project_name:$project",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "🔍 ChatGPT (Reviewer)",
@@ -116,7 +120,9 @@
         "refId": "A",
         "query": "ai_name:gemini AND project_name:$project",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "⚡ Gemini (Challenger)",
@@ -152,14 +158,18 @@
         "refId": "A",
         "query": "event_type:consensus_reached AND consensus_status:APPROVED AND project_name:$project",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       },
       {
         "refId": "B",
         "query": "event_type:consensus_reached AND project_name:$project",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp",
         "hide": true
       }],
@@ -234,7 +244,9 @@
         "refId": "A",
         "query": "event_type:human_approval AND project_name:$project",
         "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "👤 Human Approvals",
@@ -291,19 +303,14 @@
       "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "orange", "value": 0.5 },
-              { "color": "green", "value": 0.7 }
-            ]
-          },
-          "max": 1,
-          "min": 0,
-          "unit": "percentunit"
-        }
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "chatgpt" }, "properties": [{ "id": "color", "value": { "fixedColor": "#10A37F", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "gemini" }, "properties": [{ "id": "color", "value": { "fixedColor": "#4285F4", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "claude" }, "properties": [{ "id": "color", "value": { "fixedColor": "#6E40AA", "mode": "fixed" } }] }
+        ]
       },
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
       "id": 11,
@@ -312,41 +319,20 @@
         "minVizHeight": 10,
         "minVizWidth": 0,
         "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false },
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true },
         "showUnfilled": true,
         "valueMode": "color"
       },
       "targets": [{
         "refId": "A",
-        "query": "event_type:ai_review AND review_approved:true AND project_name:$project",
+        "query": "event_type:ai_review AND approved:true AND project_name:$project",
         "metrics": [{ "id": "1", "type": "count" }],
         "bucketAggs": [
           { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
         ],
         "timeField": "@timestamp"
-      },
-      {
-        "refId": "B",
-        "query": "event_type:ai_review AND project_name:$project",
-        "metrics": [{ "id": "1", "type": "count" }],
-        "bucketAggs": [
-          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
-        ],
-        "timeField": "@timestamp",
-        "hide": true
       }],
-      "title": "✅ Approval Rate by Agent",
-      "transformations": [
-        {
-          "id": "calculateField",
-          "options": {
-            "mode": "binary",
-            "reduce": { "reducer": "sum" },
-            "binary": { "left": "A", "operator": "/", "right": "B" },
-            "replaceFields": true
-          }
-        }
-      ],
+      "title": "✅ Approved Reviews by Agent",
       "type": "bargauge"
     },
     {
@@ -428,10 +414,10 @@
       },
       "targets": [{
         "refId": "A",
-        "query": "tokens_used:* AND project_name:$project",
-        "metrics": [{ "id": "1", "type": "sum", "field": "tokens_used" }],
+        "query": "total_tokens:* AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "sum", "field": "total_tokens" }],
         "bucketAggs": [
-          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } },
+          { "id": "2", "field": "ai_provider.keyword", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } },
           { "id": "3", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1h", "min_doc_count": "0" } }
         ],
         "timeField": "@timestamp"
@@ -473,10 +459,10 @@
       },
       "targets": [{
         "refId": "A",
-        "query": "tokens_used:* AND project_name:$project",
-        "metrics": [{ "id": "1", "type": "sum", "field": "tokens_used" }],
+        "query": "total_tokens:* AND project_name:$project",
+        "metrics": [{ "id": "1", "type": "sum", "field": "total_tokens" }],
         "bucketAggs": [
-          { "id": "2", "field": "ai_name", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+          { "id": "2", "field": "ai_provider.keyword", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
         ],
         "timeField": "@timestamp"
       }],

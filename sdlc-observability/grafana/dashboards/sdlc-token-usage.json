@@ -935,7 +935,17 @@
       "pluginVersion": "10.2.0",
       "targets": [
         {
-          "bucketAggs": [],
+          "bucketAggs": [
+            {
+              "field": "@timestamp",
+              "id": "2",
+              "settings": {
+                "interval": "auto",
+                "min_doc_count": "0"
+              },
+              "type": "date_histogram"
+            }
+          ],
           "datasource": {
             "type": "elasticsearch",
             "uid": "elasticsearch-sdlc"

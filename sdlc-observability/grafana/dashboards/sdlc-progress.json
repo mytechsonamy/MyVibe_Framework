@@ -156,8 +156,10 @@
       "targets": [{
         "refId": "A",
         "query": "project_name:$project",
-        "metrics": [{ "id": "1", "type": "logs" }],
-        "bucketAggs": [],
+        "metrics": [{ "id": "1", "type": "logs", "settings": { "limit": "500" } }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
         "timeField": "@timestamp"
       }],
       "title": "All Project Events",
