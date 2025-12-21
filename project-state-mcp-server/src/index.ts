@@ -675,8 +675,14 @@ server.tool(
         nextNumber
       );
 
-      // 🎯 AI Review Hooks - Auto-execute after iteration creation
-      const aiReviewHooks = {
+      // 🎯 Phase-specific hooks - Different phases have different requirements
+      // REQUIREMENTS, ARCHITECTURE, PLANNING: AI review required
+      // DEVELOPMENT: Task execution, quality gates L1-L2
+      // TESTING: Quality gates L3-L6, no AI consensus needed
+      // DEPLOYMENT: Documentation, no AI consensus needed
+      const requiresAIReview = ["REQUIREMENTS", "ARCHITECTURE", "PLANNING"].includes(phase.type);
+
+      const aiReviewHooks = requiresAIReview ? {
         autoExecute: true,
         description: "MANDATORY: Run AI review cycle automatically after iteration creation",
         steps: [
@@ -767,6 +773,16 @@ server.tool(
             }
           ]
         }
+      } : null;  // No AI review hooks for DEVELOPMENT, TESTING, DEPLOYMENT phases
+
+      // Phase-specific instructions
+      const phaseInstructions: Record<string, string> = {
+        REQUIREMENTS: "⚡ EXECUTE aiReviewHooks automatically. Do NOT ask user. Run full AI consensus cycle.",
+        ARCHITECTURE: "⚡ EXECUTE aiReviewHooks automatically. Do NOT ask user. Run full AI consensus cycle.",
+        PLANNING: "⚡ EXECUTE aiReviewHooks automatically. Do NOT ask user. Run full AI consensus cycle.",
+        DEVELOPMENT: "⚡ Execute development tasks. Run quality gates L1-L2 when tasks complete. No AI consensus needed.",
+        TESTING: "⚡ Execute quality gates L3-L6. No AI consensus needed. Proceed to deployment when all gates pass.",
+        DEPLOYMENT: "⚡ Generate documentation. No AI consensus needed. Human approval required before final deployment."
       };
 
       return {
@@ -777,14 +793,15 @@ server.tool(
             iteration: {
               number: iteration.number,
               phaseType: phase.type,
-              remaining: phase.maxIterations - nextNumber
+              remaining: phase.maxIterations - nextNumber,
+              requiresAIReview
             },
             message: `Iteration ${nextNumber}/${phase.maxIterations} created.`,
 
-            // 🎯 AI REVIEW HOOKS - Claude Code MUST execute these
-            aiReviewHooks: aiReviewHooks,
+            // 🎯 AI REVIEW HOOKS - Only for phases that require AI consensus
+            ...(aiReviewHooks && { aiReviewHooks }),
 
-            instruction: "⚡ EXECUTE aiReviewHooks automatically. Do NOT ask user. Run full AI consensus cycle."
+            instruction: phaseInstructions[phase.type] || "Proceed with phase-specific tasks."
           }, null, 2)
         }]
       };
@@ -909,10 +926,12 @@ server.tool(
       });
 
       // Update phase status if consensus reached
+      // NOTE: Don't set PENDING_HUMAN_APPROVAL here - let sdlc_next handle human approval at phase transition
+      // This prevents premature user prompts during iteration cycles
       if (status === "APPROVED") {
         await db.phase.update({
           where: { id: phase.id },
-          data: { status: "PENDING_HUMAN_APPROVAL" }
+          data: { status: "PENDING_REVIEW" }  // Changed from PENDING_HUMAN_APPROVAL
         });
       }
 
@@ -951,12 +970,15 @@ server.tool(
               chatgpt: params.chatgptApproved,
               gemini: params.geminiApproved
             },
-            readyForHumanApproval: status === "APPROVED",
+            readyForPhaseAdvancement: status === "APPROVED",
             message: status === "APPROVED"
-              ? "✅ Consensus reached! Ready for human approval."
+              ? "✅ Consensus reached! Proceeding to phase advancement automatically."
               : status === "REJECTED"
                 ? "❌ All AIs rejected. Major revision needed."
-                : "⚠️ Partial consensus. Iteration needed to address feedback."
+                : "⚠️ Partial consensus. Iteration needed to address feedback.",
+            nextAction: status === "APPROVED"
+              ? "Call sdlc_next to advance phase (human approval will be requested there)"
+              : "Auto-iterate with combined feedback - DO NOT ask user"
           }, null, 2)
         }]
       };

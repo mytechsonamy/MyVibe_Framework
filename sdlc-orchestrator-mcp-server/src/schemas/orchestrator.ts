@@ -103,6 +103,7 @@ export const RunAIReviewSchema = z.object({
 export const GetAgentsSchema = z.object({
   techStack: z.array(z.string()).describe("Technology stack (e.g., ['dotnet', 'postgresql', 'react'])"),
   projectId: z.string().optional().describe("Project ID (optional, for generating registration sequence)"),
+  workspacePath: z.string().optional().describe("Project workspace path to load project-specific agent definitions from docs/agents/*.md"),
   phase: z.enum([
     "REQUIREMENTS", "ARCHITECTURE", "PLANNING",
     "DEVELOPMENT", "TESTING", "DEPLOYMENT"
@@ -113,6 +114,13 @@ export const GetAgentsSchema = z.object({
 export const ValidateAgentsSchema = z.object({
   registeredAgents: z.array(z.string()).describe("List of registered agent types from state_get_agents"),
   techStack: z.array(z.string()).describe("Project tech stack")
+}).strict();
+
+// Get agent context for task execution
+export const GetAgentContextSchema = z.object({
+  workspacePath: z.string().describe("Project workspace path"),
+  agentType: z.string().describe("Agent type (e.g., BACKEND_NODE, FRONTEND_REACT)"),
+  taskDescription: z.string().optional().describe("Task description to include in context")
 }).strict();
 
 // Generate phase documentation

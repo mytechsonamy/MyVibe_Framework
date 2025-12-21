@@ -21,9 +21,18 @@ import {
   RunAIReviewSchema,
   GetAgentsSchema,
   ValidateAgentsSchema,
+  GetAgentContextSchema,
   GenerateDocsSchema,
   GenerateChangelogSchema
 } from "./schemas/orchestrator.js";
+
+import {
+  loadProjectAgents,
+  getProjectAgentByType,
+  generateAgentContext,
+  getAgentSystemPrompt,
+  ProjectAgent
+} from "./agent-loader.js";
 
 import {
   validatePhaseAdvancement,
@@ -457,11 +466,16 @@ server.tool(
           ]
         },
 
-        // When consensus approved, need human approval
+        // When consensus approved, auto-proceed to phase advancement
         "CONSENSUS_APPROVED": {
-          condition: "consensusResult.consensus.status === 'APPROVED' && !phaseState.latestIteration.humanApproved",
-          action: "REQUEST_HUMAN_APPROVAL",
-          message: "✅ AI Consensus sağlandı. İnsan onayı gerekiyor.\n\nOnaylamak için: 'onayla' veya 'devam'\nRevize istemek için: 'revize: [feedback]'"
+          condition: "consensusResult.consensus.status === 'APPROVED'",
+          action: "AUTO_ADVANCE_PHASE",
+          message: "✅ AI Consensus sağlandı. Faz geçişi için otomatik ilerleniyor.",
+          autoSteps: [
+            "1. Artifact'ı kaydet (state_save_artifact)",
+            "2. sdlc_validate_advance ile kontrol et",
+            "3. sdlc_next ile sonraki faza geç (human approval orada alınacak)"
+          ]
         },
 
         // Development phase specific
@@ -479,12 +493,28 @@ server.tool(
             {
               step: 2,
               condition: "pendingTasks.length > 0",
-              description: "Pick first task by dependency order and execute",
+              description: "Get agent context for the task's assigned agent type",
+              tool: "mcp__sdlc-orchestrator__sdlc_get_agent_context",
+              params: {
+                workspacePath: "{{workspacePath}}",
+                agentType: "{{pendingTasks[0].agentType}}",
+                taskDescription: "{{pendingTasks[0].description}}"
+              },
+              storeResultAs: "agentContext",
+              note: "This provides the agent's system prompt and instructions"
+            },
+            {
+              step: 3,
+              description: "Execute the task using the agent's system prompt as context",
+              action: "Apply agentContext.systemPrompt when implementing the task"
+            },
+            {
+              step: 4,
               tool: "mcp__project-state__state_update_task",
               params: { taskId: "{{pendingTasks[0].id}}", status: "IN_PROGRESS" }
             }
           ],
-          note: "For each task: implement code, run AI review on code, mark complete"
+          note: "For each task: 1) Get agent context, 2) Apply agent's system prompt, 3) Implement code, 4) Run quality gates"
         }
       },
 
@@ -968,8 +998,17 @@ server.tool(
 
       postConditions: {
         "APPROVED": {
-          nextAction: "Request human approval",
-          message: "✅ AI consensus reached. Ask user: 'Onaylıyor musunuz? (onayla/revize)'"
+          nextAction: "Auto-advance to next phase or quality gates",
+          message: "✅ AI consensus reached. Proceeding automatically to phase advancement.",
+          autoAction: {
+            description: "Consensus approved - proceed automatically without asking user",
+            steps: [
+              "1. Save the approved artifact if not already saved",
+              "2. Call sdlc_validate_advance to check if phase can advance",
+              "3. If all checks pass → call sdlc_next to advance phase",
+              "4. Human approval will be requested by sdlc_next at phase transition"
+            ]
+          }
         },
         "NEEDS_REVISION": {
           nextAction: "Start negotiation - DO NOT ask user",
@@ -1068,17 +1107,21 @@ server.tool(
 
 server.tool(
   "sdlc_get_agents",
-  "Get agents required for a project based on tech stack. Returns agent definitions and registration sequence.",
+  "Get agents required for a project based on tech stack. Includes project-specific agent definitions from docs/agents/*.md if workspacePath is provided.",
   GetAgentsSchema.shape,
   async (params) => {
     try {
-      const { techStack, projectId, phase } = params;
+      const { techStack, projectId, workspacePath, phase } = params;
 
-      // Get required agents for tech stack
+      // Get required agents for tech stack from default registry
       const requiredAgents = getAgentsForTechStack(techStack);
-
-      // Get full agent definitions
       let agents = requiredAgents.map(type => AGENT_REGISTRY[type]);
+
+      // Load project-specific agents if workspacePath provided
+      let projectAgents: ProjectAgent[] = [];
+      if (workspacePath) {
+        projectAgents = loadProjectAgents(workspacePath);
+      }
 
       // Filter by phase if specified
       if (phase) {
@@ -1112,11 +1155,101 @@ server.tool(
               phases: a.phases,
               qualityGates: a.qualityGates
             })),
+            // Project-specific agents with system prompts
+            projectAgents: projectAgents.map(a => ({
+              type: a.type,
+              name: a.name,
+              techStack: a.techStack,
+              responsibilities: a.responsibilities,
+              hasSystemPrompt: !!a.systemPrompt,
+              systemPromptPreview: a.systemPrompt?.substring(0, 200) + (a.systemPrompt?.length > 200 ? '...' : '')
+            })),
             agentsByPhase: Object.fromEntries(
               Object.entries(agentsByPhase).map(([p, a]) => [p, a.map(x => x.type)])
             ),
             registrationSequence,
-            message: `Found ${agents.length} agents for tech stack: ${techStack.join(', ')}`
+            message: `Found ${agents.length} default agents and ${projectAgents.length} project-specific agents`,
+            instruction: projectAgents.length > 0
+              ? "Use sdlc_get_agent_context to get full system prompt for task execution"
+              : "No project-specific agents found. Consider creating docs/agents/*.md files."
+          }, null, 2)
+        }]
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            success: false,
+            error: errorMessage
+          }, null, 2)
+        }],
+        isError: true
+      };
+    }
+  }
+);
+
+// ============================================================================
+// TOOL: sdlc_get_agent_context
+// ============================================================================
+
+server.tool(
+  "sdlc_get_agent_context",
+  "Get project-specific agent context including system prompt for task execution. Use this to get the agent's instructions before executing a task.",
+  GetAgentContextSchema.shape,
+  async (params) => {
+    try {
+      const { workspacePath, agentType, taskDescription } = params;
+
+      // Get project-specific agent
+      const projectAgent = getProjectAgentByType(workspacePath, agentType);
+
+      if (!projectAgent) {
+        return {
+          content: [{
+            type: "text",
+            text: JSON.stringify({
+              success: false,
+              error: `Agent type '${agentType}' not found in ${workspacePath}/docs/agents/`,
+              suggestion: "Check if the agent markdown file exists or use a different agent type",
+              availableAgentFiles: "Run: ls docs/agents/*.md"
+            }, null, 2)
+          }],
+          isError: true
+        };
+      }
+
+      // Generate full context
+      const agentContext = generateAgentContext(workspacePath, agentType);
+
+      return {
+        content: [{
+          type: "text",
+          text: JSON.stringify({
+            success: true,
+            agent: {
+              type: projectAgent.type,
+              name: projectAgent.name,
+              techStack: projectAgent.techStack,
+              responsibilities: projectAgent.responsibilities,
+              qualityGates: projectAgent.qualityGates,
+              collaborators: projectAgent.collaborators
+            },
+            systemPrompt: projectAgent.systemPrompt,
+            context: agentContext,
+            taskExecution: taskDescription ? {
+              task: taskDescription,
+              instruction: `Execute this task as ${projectAgent.name}. Follow the system prompt above.`
+            } : null,
+            usage: {
+              description: "Use the systemPrompt as context when calling ai_invoke_chatgpt or when Claude executes the task",
+              example: {
+                aiInvoke: "Pass systemPrompt as 'context' parameter",
+                claudeExecution: "Apply the systemPrompt instructions directly"
+              }
+            }
           }, null, 2)
         }]
       };
@@ -1341,7 +1474,7 @@ async function main() {
   await server.connect(transport);
 
   console.error("SDLC Orchestrator MCP Server started");
-  console.error("Tools: sdlc_init, sdlc_status, sdlc_continue, sdlc_review, sdlc_sprint, sdlc_next, sdlc_help, sdlc_validate_advance, sdlc_run_ai_review, sdlc_get_agents, sdlc_validate_agents, sdlc_generate_docs, sdlc_generate_changelog");
+  console.error("Tools: sdlc_init, sdlc_status, sdlc_continue, sdlc_review, sdlc_sprint, sdlc_next, sdlc_help, sdlc_validate_advance, sdlc_run_ai_review, sdlc_get_agents, sdlc_get_agent_context, sdlc_validate_agents, sdlc_generate_docs, sdlc_generate_changelog");
 }
 
 main().catch((error) => {
