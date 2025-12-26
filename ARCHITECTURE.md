@@ -21,18 +21,26 @@ MyVibe Framework is an AI-Orchestrated SDLC (Software Development Lifecycle) aut
 │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
-                    ┌─────────────────┼─────────────────┐
-                    ▼                 ▼                 ▼
-           ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-           │  AI Gateway  │  │Project State │  │  Dev Tools   │
-           │  (Multi-AI)  │  │  (Postgres)  │  │  (FS + Git)  │
-           └──────────────┘  └──────────────┘  └──────────────┘
-                    │                 │                 │
-                    ▼                 ▼                 ▼
-           ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-           │   ChatGPT    │  │   Database   │  │  Workspace   │
-           │   Gemini     │  │   + Index    │  │  + Git Repo  │
-           └──────────────┘  └──────────────┘  └──────────────┘
+              ┌───────────────────────┼───────────────────────┐
+              ▼                       ▼                       ▼
+     ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
+     │  AI Gateway  │        │Project State │        │  Dev Tools   │
+     │  (Multi-AI)  │        │  (Postgres)  │        │  (FS + Git)  │
+     └──────────────┘        └──────────────┘        └──────────────┘
+              │                       │                       │
+              ▼                       ▼                       ▼
+     ┌──────────────┐        ┌──────────────┐        ┌──────────────┐
+     │   ChatGPT    │        │   Database   │        │  Workspace   │
+     │   Gemini     │        │   + Index    │        │  + Git Repo  │
+     └──────────────┘        └──────────────┘        └──────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            Design Tools Layer                                │
+│                   ┌────────────────────────────────────┐                     │
+│                   │  Design Tools (Figma + Tokens)     │                     │
+│                   │  Wireframes │ Mockups │ A11y Check │                     │
+│                   └────────────────────────────────────┘                     │
+└─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        Brownfield Support Layer                              │
@@ -54,7 +62,7 @@ MyVibe Framework is an AI-Orchestrated SDLC (Software Development Lifecycle) aut
 
 ## MCP Server Catalog
 
-### Core Servers (4)
+### Core Servers (5)
 
 | Server | Purpose | Key Tools |
 |--------|---------|-----------|
@@ -62,13 +70,15 @@ MyVibe Framework is an AI-Orchestrated SDLC (Software Development Lifecycle) aut
 | **AI Gateway** | Multi-AI consensus (ChatGPT, Gemini) | `ai_review_artifact`, `ai_check_consensus` |
 | **Project State** | Persistent state, PostgreSQL | `state_create_project`, `state_save_artifact` |
 | **Dev Tools** | File system, Git operations | `dev_file_write`, `dev_git_commit` |
+| **Design Tools** | UI/UX design, Figma integration | `design_create_file`, `design_review_accessibility` |
 
-### Brownfield Support Servers (8)
+### Brownfield Support Servers (9)
 
 | Server | Purpose | Key Tools |
 |--------|---------|-----------|
 | **Repo Indexer** | Code intelligence, AST parsing | `repo_index`, `repo_analyze_impact` |
 | **Context Orchestrator** | Token budget, smart context | `context_plan`, `context_get` |
+| **Session Persistence** | Context recovery, snapshots | `session_create`, `session_resume` |
 | **Delivery Planner** | PR slicing, feature flags | `delivery_slice_changes`, `delivery_create_rollout` |
 | **Test Intelligence** | Smart test selection | `test_select`, `test_detect_flaky` |
 | **Arch Guardrails** | Architecture enforcement | `arch_analyze`, `arch_find_circular` |
@@ -218,9 +228,11 @@ MyVibe_Framework/
 ├── ai-gateway-mcp-server/           # Multi-AI gateway
 ├── project-state-mcp-server/        # State management
 ├── dev-tools-mcp-server/            # File/Git operations
+├── design-tools-mcp-server/         # UI/UX design, Figma
 │
 ├── repo-indexer-mcp-server/         # P0: Code intelligence
 ├── context-orchestrator-mcp-server/ # P0: Context management
+├── session-persistence-mcp-server/  # P0: Session recovery
 ├── delivery-planner-mcp-server/     # P1: Delivery planning
 ├── test-intelligence-mcp-server/    # P1: Test selection
 ├── arch-guardrails-mcp-server/      # P1: Architecture rules
@@ -305,16 +317,45 @@ fingerprint_learn_pattern({
 })
 ```
 
+## SDLC Workflow
+
+```
+REQUIREMENTS ──► DESIGN ──► ARCHITECTURE ──► PLANNING ──► DEVELOPMENT ──► TESTING ──► DEPLOYMENT
+     │             │             │              │              │              │            │
+     ▼             ▼             ▼              ▼              ▼              ▼            ▼
+  5 iter        5 iter        4 iter         3 iter        sprints        5 iter       3 iter
+     │             │             │              │              │              │            │
+     ▼             ▼             ▼              ▼              ▼              ▼            ▼
+ AI Review    AI Review     AI Review      AI Review     Quality       Quality        Deploy
+ Consensus    Consensus     Consensus      Consensus      Gates         Gates        Verify
+```
+
+### DESIGN Phase (New)
+
+The DESIGN phase sits between REQUIREMENTS and ARCHITECTURE:
+
+| Aspect | Details |
+|--------|---------|
+| **Purpose** | UI/UX design, wireframes, mockups, design tokens |
+| **Max Iterations** | 5 |
+| **AI Roles** | Claude: Design system • ChatGPT: UX review • Gemini: Accessibility |
+| **Required Artifacts** | WIREFRAMES, MOCKUPS, DESIGN_TOKENS, COMPONENT_MAP |
+| **Exit Criteria** | A11y score ≥80, Consistency validated, Human approval |
+
 ## Roadmap Integration
 
-All Brownfield Support features (P0, P1, P2) are complete. Next priorities:
+All Brownfield Support features (P0, P1, P2) and Session Persistence are complete.
 
-1. **Session Persistence** - Context recovery across sessions
-2. **Multi-Project Dashboard** - Manage multiple projects
-3. **Plugin System** - Easy extension mechanism
-4. **Cloud Deployment** - Hosted version
+### Completed
+- Session Persistence - Context recovery across sessions
+- DESIGN Phase - UI/UX design workflow with Figma integration
+
+### Next Priorities
+1. **Multi-Project Dashboard** - Manage multiple projects
+2. **Plugin System** - Easy extension mechanism
+3. **Cloud Deployment** - Hosted version
 
 ---
 
-Last Updated: 2024-12-26
-Version: 2.0.0 (Brownfield Support Complete)
+Last Updated: 2025-12-26
+Version: 3.0.0 (DESIGN Phase + Session Persistence Complete)

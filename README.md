@@ -74,7 +74,7 @@ MyVibe Framework enables fully automated software development through AI orchest
 
 ### Core Capabilities
 - **Multi-AI Consensus**: Claude orchestrates, ChatGPT reviews, Gemini challenges
-- **6-Phase SDLC**: Requirements → Architecture → Planning → Development → Testing → Deployment
+- **7-Phase SDLC**: Requirements → Design → Architecture → Planning → Development → Testing → Deployment
 - **Quality Gates**: 7-level gates (L1-L7) from task completion to regression testing
 - **Human-in-the-Loop**: Human approval at phase transitions only
 - **Real-time Observability**: Elasticsearch + Grafana dashboards
@@ -117,7 +117,7 @@ Human OK       Human OK     Human OK        Human OK     Sprint OK      Human OK
 
 > **Note**: Max iterations are configurable per phase using `state_update_phase_max_iterations`. Values shown are defaults.
 
-## Components (15 MCP Servers)
+## Components (14 MCP Servers)
 
 ### Core Servers
 
