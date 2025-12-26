@@ -344,7 +344,29 @@ Learns project "dialect" - coding style, patterns, and conventions.
 | `fingerprint_template` | Generate code templates |
 | `fingerprint_suggest` | Suggest naming conventions |
 
-### 13. Observability Stack
+### 13. Session Persistence MCP Server
+**Location**: `session-persistence-mcp-server/`
+
+Context preservation and session recovery for large projects.
+
+| Tool | Description |
+|------|-------------|
+| `session_create` | Create new project session |
+| `session_get` | Get session information |
+| `session_list` | List sessions with filters |
+| `session_update` | Update session status |
+| `session_snapshot` | Create state snapshot |
+| `session_get_snapshot` | Get specific snapshot |
+| `session_list_snapshots` | List session snapshots |
+| `session_track_file` | Track file access |
+| `session_track_change` | Track code changes |
+| `session_record_decision` | Record decisions made |
+| `session_record_conversation` | Record conversation summaries |
+| `session_resume` | Resume session with context |
+| `session_get_context` | Get resumption context |
+| `session_cleanup` | Cleanup old sessions |
+
+### 14. Observability Stack
 **Location**: `sdlc-observability/`
 
 Real-time monitoring with Elasticsearch, Kibana, and Grafana.
@@ -721,6 +743,15 @@ MyVibe_Framework/
 │   │       └── fingerprint.ts          # Style, patterns, conventions
 │   └── package.json
 │
+├── session-persistence-mcp-server/     # Session & context recovery
+│   ├── src/
+│   │   ├── index.ts                    # MCP server entry
+│   │   ├── types.ts                    # Type definitions
+│   │   ├── schemas/session.ts          # Tool schemas
+│   │   └── services/
+│   │       └── persistence.ts          # Session management, snapshots
+│   └── package.json
+│
 └── sdlc-observability/                 # Monitoring stack
     ├── docker-compose.yml              # ELK + Grafana
     ├── shared/
@@ -866,12 +897,18 @@ Framework'ü mevcut büyük projelerde (100K+ LOC) çalışabilir hale getirmek 
 | Copilot Workspace | Issue → Plan → Code | Deep planning phases + quality gates |
 | Aider | ctags-based, lightweight | Enterprise-grade state management + observability |
 
+#### P3 - Session & Context Management ✅ COMPLETED
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Session Persistence** | Context preservation across sessions. Auto-snapshots, resumption context, AI memory tracking. | ✅ Done |
+
 #### Implementation Phases
 
 ```
-Phase 1 (Core) ✅         Phase 2 (Workflow) ✅      Phase 3 (Integration) ✅
-─────────────────────    ─────────────────────     ─────────────────────
-✓ Repo Indexer           ✓ Slice Planner           ✓ PR Orchestrator
+Phase 1 (Core) ✅         Phase 2 (Workflow) ✅      Phase 3 (Integration) ✅    Phase 4 (Context) ✅
+─────────────────────    ─────────────────────     ─────────────────────      ─────────────────────
+✓ Repo Indexer           ✓ Slice Planner           ✓ PR Orchestrator          ✓ Session Persistence
 ✓ Impact Engine          ✓ Test Intelligence       ✓ Hotspot Analyzer
 ✓ Context Orchestrator   ✓ Arch Guardrails         ✓ Repo Fingerprinting
 ```

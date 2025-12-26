@@ -38,6 +38,35 @@ export type EventType =
   | 'test_run'
   | 'token_usage'
   | 'ai_invocation'
+  // Brownfield - Context Orchestrator Events
+  | 'context_plan_created'
+  | 'context_retrieved'
+  | 'context_analysis'
+  | 'token_budget_allocated'
+  | 'context_chunk_created'
+  // Brownfield - Repo Indexer Events
+  | 'repo_indexing_started'
+  | 'repo_indexing_completed'
+  | 'symbol_extracted'
+  | 'dependency_analyzed'
+  | 'impact_analysis'
+  | 'hotspot_detected'
+  | 'circular_dependency_found'
+  // Brownfield - Architecture & Delivery Events
+  | 'arch_validation'
+  | 'arch_violation'
+  | 'delivery_plan_created'
+  | 'feature_flag_created'
+  | 'rollout_started'
+  // Brownfield - Test Intelligence Events
+  | 'test_selection'
+  | 'flaky_test_detected'
+  | 'test_coverage_analysis'
+  // Brownfield - Session & Fingerprint Events
+  | 'session_snapshot_created'
+  | 'session_restored'
+  | 'codebase_fingerprint'
+  | 'style_guide_generated'
   | 'error'
   | 'warning'
   | 'info';
@@ -784,6 +813,502 @@ export class SDLCLogger {
       total_tokens: totalTokens,
       total_cost_usd: totalCost,
       message: `Phase ${phase} token summary: ${totalTokens} tokens (~$${totalCost.toFixed(4)})`
+    });
+  }
+
+  // ============================================================================
+  // BROWNFIELD - CONTEXT ORCHESTRATOR EVENTS
+  // ============================================================================
+
+  /**
+   * Log context plan creation for brownfield projects
+   */
+  logContextPlanCreated(
+    projectId: string,
+    projectName: string,
+    targetFiles: string[],
+    strategy: 'full_files' | 'smart_chunks' | 'summaries' | 'hybrid',
+    tokenBudget: number,
+    filesAnalyzed: number,
+    filesSelected: number,
+    estimatedTokens: number
+  ): void {
+    this.info('context_plan_created', {
+      project_id: projectId,
+      project_name: projectName,
+      target_files: targetFiles,
+      context_strategy: strategy,
+      token_budget: tokenBudget,
+      files_analyzed: filesAnalyzed,
+      files_selected: filesSelected,
+      estimated_tokens: estimatedTokens,
+      budget_utilization: Math.round((estimatedTokens / tokenBudget) * 100),
+      message: `Context plan: ${filesSelected}/${filesAnalyzed} files, ${estimatedTokens}/${tokenBudget} tokens (${strategy})`
+    });
+  }
+
+  /**
+   * Log context retrieval for brownfield projects
+   */
+  logContextRetrieved(
+    projectId: string,
+    projectName: string,
+    filesRetrieved: number,
+    chunksRetrieved: number,
+    totalTokens: number,
+    tokenBudget: number,
+    retrievalTimeMs: number
+  ): void {
+    this.info('context_retrieved', {
+      project_id: projectId,
+      project_name: projectName,
+      files_retrieved: filesRetrieved,
+      chunks_retrieved: chunksRetrieved,
+      total_tokens: totalTokens,
+      token_budget: tokenBudget,
+      budget_utilization: Math.round((totalTokens / tokenBudget) * 100),
+      retrieval_time_ms: retrievalTimeMs,
+      message: `Context retrieved: ${filesRetrieved} files, ${chunksRetrieved} chunks, ${totalTokens} tokens in ${retrievalTimeMs}ms`
+    });
+  }
+
+  /**
+   * Log file relevance analysis
+   */
+  logContextAnalysis(
+    projectId: string,
+    projectName: string,
+    targetFile: string,
+    analyzedFiles: number,
+    relevantFiles: number,
+    avgRelevanceScore: number,
+    analysisTimeMs: number
+  ): void {
+    this.info('context_analysis', {
+      project_id: projectId,
+      project_name: projectName,
+      target_file: targetFile,
+      analyzed_files: analyzedFiles,
+      relevant_files: relevantFiles,
+      avg_relevance_score: avgRelevanceScore,
+      analysis_time_ms: analysisTimeMs,
+      message: `Context analysis: ${relevantFiles}/${analyzedFiles} relevant files (avg score: ${avgRelevanceScore.toFixed(2)})`
+    });
+  }
+
+  /**
+   * Log token budget allocation
+   */
+  logTokenBudgetAllocated(
+    projectId: string,
+    projectName: string,
+    totalBudget: number,
+    allocatedBudget: number,
+    reservedForResponse: number,
+    filesCount: number
+  ): void {
+    this.info('token_budget_allocated', {
+      project_id: projectId,
+      project_name: projectName,
+      total_budget: totalBudget,
+      allocated_budget: allocatedBudget,
+      reserved_for_response: reservedForResponse,
+      files_count: filesCount,
+      avg_tokens_per_file: Math.round(allocatedBudget / filesCount),
+      message: `Token budget: ${allocatedBudget}/${totalBudget} allocated for ${filesCount} files`
+    });
+  }
+
+  // ============================================================================
+  // BROWNFIELD - REPO INDEXER EVENTS
+  // ============================================================================
+
+  /**
+   * Log repository indexing start
+   */
+  logRepoIndexingStarted(
+    projectId: string,
+    projectName: string,
+    repoPath: string,
+    languages: string[],
+    isIncremental: boolean,
+    excludePatterns: string[]
+  ): void {
+    this.info('repo_indexing_started', {
+      project_id: projectId,
+      project_name: projectName,
+      repo_path: repoPath,
+      languages,
+      is_incremental: isIncremental,
+      exclude_patterns: excludePatterns,
+      message: `Indexing started: ${repoPath} (${languages.join(', ')}, ${isIncremental ? 'incremental' : 'full'})`
+    });
+  }
+
+  /**
+   * Log repository indexing completion
+   */
+  logRepoIndexingCompleted(
+    projectId: string,
+    projectName: string,
+    repoPath: string,
+    filesIndexed: number,
+    symbolsExtracted: number,
+    dependenciesMapped: number,
+    indexingTimeMs: number,
+    indexSizeBytes: number
+  ): void {
+    this.info('repo_indexing_completed', {
+      project_id: projectId,
+      project_name: projectName,
+      repo_path: repoPath,
+      files_indexed: filesIndexed,
+      symbols_extracted: symbolsExtracted,
+      dependencies_mapped: dependenciesMapped,
+      indexing_time_ms: indexingTimeMs,
+      index_size_bytes: indexSizeBytes,
+      files_per_second: Math.round((filesIndexed / indexingTimeMs) * 1000),
+      message: `Indexing completed: ${filesIndexed} files, ${symbolsExtracted} symbols, ${dependenciesMapped} deps in ${indexingTimeMs}ms`
+    });
+  }
+
+  /**
+   * Log symbol extraction statistics
+   */
+  logSymbolExtracted(
+    projectId: string,
+    projectName: string,
+    filePath: string,
+    language: string,
+    functions: number,
+    classes: number,
+    interfaces: number,
+    types: number,
+    variables: number
+  ): void {
+    const totalSymbols = functions + classes + interfaces + types + variables;
+    this.debug('symbol_extracted', {
+      project_id: projectId,
+      project_name: projectName,
+      file_path: filePath,
+      language,
+      functions_count: functions,
+      classes_count: classes,
+      interfaces_count: interfaces,
+      types_count: types,
+      variables_count: variables,
+      total_symbols: totalSymbols,
+      message: `Symbols extracted: ${filePath} (${totalSymbols} symbols)`
+    });
+  }
+
+  /**
+   * Log dependency analysis
+   */
+  logDependencyAnalyzed(
+    projectId: string,
+    projectName: string,
+    filePath: string,
+    incomingDeps: number,
+    outgoingDeps: number,
+    couplingScore: number
+  ): void {
+    this.info('dependency_analyzed', {
+      project_id: projectId,
+      project_name: projectName,
+      file_path: filePath,
+      incoming_dependencies: incomingDeps,
+      outgoing_dependencies: outgoingDeps,
+      total_dependencies: incomingDeps + outgoingDeps,
+      coupling_score: couplingScore,
+      message: `Dependencies: ${filePath} (in: ${incomingDeps}, out: ${outgoingDeps}, coupling: ${couplingScore.toFixed(2)})`
+    });
+  }
+
+  /**
+   * Log impact analysis for code changes
+   */
+  logImpactAnalysis(
+    projectId: string,
+    projectName: string,
+    changedFiles: string[],
+    affectedFiles: number,
+    affectedSymbols: number,
+    riskScore: number,
+    riskLevel: 'low' | 'medium' | 'high' | 'critical',
+    analysisTimeMs: number
+  ): void {
+    this.info('impact_analysis', {
+      project_id: projectId,
+      project_name: projectName,
+      changed_files: changedFiles,
+      changed_files_count: changedFiles.length,
+      affected_files: affectedFiles,
+      affected_symbols: affectedSymbols,
+      risk_score: riskScore,
+      risk_level: riskLevel,
+      analysis_time_ms: analysisTimeMs,
+      blast_radius: affectedFiles / Math.max(changedFiles.length, 1),
+      message: `Impact analysis: ${changedFiles.length} changes → ${affectedFiles} affected files (risk: ${riskLevel}, score: ${riskScore.toFixed(2)})`
+    });
+  }
+
+  /**
+   * Log code hotspot detection
+   */
+  logHotspotDetected(
+    projectId: string,
+    projectName: string,
+    filePath: string,
+    hotspotType: 'high_churn' | 'high_coupling' | 'high_complexity' | 'bus_factor',
+    score: number,
+    metrics: {
+      dependents?: number;
+      commits?: number;
+      authors?: number;
+      complexity?: number;
+    }
+  ): void {
+    this.warn('hotspot_detected', {
+      project_id: projectId,
+      project_name: projectName,
+      file_path: filePath,
+      hotspot_type: hotspotType,
+      hotspot_score: score,
+      dependents_count: metrics.dependents,
+      commits_count: metrics.commits,
+      authors_count: metrics.authors,
+      complexity_score: metrics.complexity,
+      message: `Hotspot detected: ${filePath} (${hotspotType}, score: ${score.toFixed(2)})`
+    });
+  }
+
+  /**
+   * Log circular dependency detection
+   */
+  logCircularDependencyFound(
+    projectId: string,
+    projectName: string,
+    cycle: string[],
+    cycleLength: number,
+    severity: 'warning' | 'error'
+  ): void {
+    const level = severity === 'error' ? 'error' : 'warn';
+    this.log(level, 'circular_dependency_found', {
+      project_id: projectId,
+      project_name: projectName,
+      cycle_files: cycle,
+      cycle_length: cycleLength,
+      severity,
+      message: `Circular dependency: ${cycle.join(' → ')} → ${cycle[0]}`
+    });
+  }
+
+  // ============================================================================
+  // BROWNFIELD - ARCHITECTURE & DELIVERY EVENTS
+  // ============================================================================
+
+  /**
+   * Log architecture validation
+   */
+  logArchValidation(
+    projectId: string,
+    projectName: string,
+    rulesChecked: number,
+    rulesPassed: number,
+    rulesFailed: number,
+    validationTimeMs: number
+  ): void {
+    const passRate = Math.round((rulesPassed / rulesChecked) * 100);
+    this.info('arch_validation', {
+      project_id: projectId,
+      project_name: projectName,
+      rules_checked: rulesChecked,
+      rules_passed: rulesPassed,
+      rules_failed: rulesFailed,
+      pass_rate: passRate,
+      validation_time_ms: validationTimeMs,
+      message: `Architecture validation: ${rulesPassed}/${rulesChecked} rules passed (${passRate}%)`
+    });
+  }
+
+  /**
+   * Log architecture violation
+   */
+  logArchViolation(
+    projectId: string,
+    projectName: string,
+    ruleName: string,
+    violationType: string,
+    filePath: string,
+    details: string,
+    severity: 'warning' | 'error'
+  ): void {
+    const level = severity === 'error' ? 'error' : 'warn';
+    this.log(level, 'arch_violation', {
+      project_id: projectId,
+      project_name: projectName,
+      rule_name: ruleName,
+      violation_type: violationType,
+      file_path: filePath,
+      violation_details: details,
+      severity,
+      message: `Architecture violation: ${ruleName} in ${filePath} - ${details}`
+    });
+  }
+
+  /**
+   * Log delivery plan creation
+   */
+  logDeliveryPlanCreated(
+    projectId: string,
+    projectName: string,
+    totalChanges: number,
+    prCount: number,
+    estimatedRiskScore: number,
+    featureFlagsCount: number
+  ): void {
+    this.info('delivery_plan_created', {
+      project_id: projectId,
+      project_name: projectName,
+      total_changes: totalChanges,
+      pr_count: prCount,
+      avg_changes_per_pr: Math.round(totalChanges / prCount),
+      estimated_risk_score: estimatedRiskScore,
+      feature_flags_count: featureFlagsCount,
+      message: `Delivery plan: ${totalChanges} changes → ${prCount} PRs (risk: ${estimatedRiskScore.toFixed(2)})`
+    });
+  }
+
+  // ============================================================================
+  // BROWNFIELD - TEST INTELLIGENCE EVENTS
+  // ============================================================================
+
+  /**
+   * Log smart test selection
+   */
+  logTestSelection(
+    projectId: string,
+    projectName: string,
+    changedFiles: number,
+    totalTests: number,
+    selectedTests: number,
+    estimatedTimeMs: number,
+    selectionStrategy: string
+  ): void {
+    const coverage = Math.round((selectedTests / totalTests) * 100);
+    this.info('test_selection', {
+      project_id: projectId,
+      project_name: projectName,
+      changed_files: changedFiles,
+      total_tests: totalTests,
+      selected_tests: selectedTests,
+      tests_skipped: totalTests - selectedTests,
+      selection_coverage: coverage,
+      estimated_time_ms: estimatedTimeMs,
+      selection_strategy: selectionStrategy,
+      time_savings_percent: Math.round(((totalTests - selectedTests) / totalTests) * 100),
+      message: `Test selection: ${selectedTests}/${totalTests} tests selected (${coverage}% coverage, ${selectionStrategy})`
+    });
+  }
+
+  /**
+   * Log flaky test detection
+   */
+  logFlakyTestDetected(
+    projectId: string,
+    projectName: string,
+    testName: string,
+    testFile: string,
+    flakinessScore: number,
+    recentRuns: number,
+    failureRate: number
+  ): void {
+    this.warn('flaky_test_detected', {
+      project_id: projectId,
+      project_name: projectName,
+      test_name: testName,
+      test_file: testFile,
+      flakiness_score: flakinessScore,
+      recent_runs: recentRuns,
+      failure_rate: failureRate,
+      message: `Flaky test: ${testName} (flakiness: ${flakinessScore.toFixed(2)}, ${Math.round(failureRate * 100)}% failures)`
+    });
+  }
+
+  // ============================================================================
+  // BROWNFIELD - SESSION & FINGERPRINT EVENTS
+  // ============================================================================
+
+  /**
+   * Log session snapshot creation
+   */
+  logSessionSnapshotCreated(
+    projectId: string,
+    projectName: string,
+    sessionId: string,
+    phase: string,
+    artifactsCount: number,
+    decisionsCount: number,
+    snapshotSizeBytes: number
+  ): void {
+    this.info('session_snapshot_created', {
+      project_id: projectId,
+      project_name: projectName,
+      session_id: sessionId,
+      phase,
+      artifacts_count: artifactsCount,
+      decisions_count: decisionsCount,
+      snapshot_size_bytes: snapshotSizeBytes,
+      message: `Session snapshot: ${sessionId} (${artifactsCount} artifacts, ${decisionsCount} decisions)`
+    });
+  }
+
+  /**
+   * Log session restoration
+   */
+  logSessionRestored(
+    projectId: string,
+    projectName: string,
+    sessionId: string,
+    restoredPhase: string,
+    restoredArtifacts: number,
+    restorationTimeMs: number
+  ): void {
+    this.info('session_restored', {
+      project_id: projectId,
+      project_name: projectName,
+      session_id: sessionId,
+      restored_phase: restoredPhase,
+      restored_artifacts: restoredArtifacts,
+      restoration_time_ms: restorationTimeMs,
+      message: `Session restored: ${sessionId} at ${restoredPhase} (${restoredArtifacts} artifacts in ${restorationTimeMs}ms)`
+    });
+  }
+
+  /**
+   * Log codebase fingerprinting
+   */
+  logCodebaseFingerprint(
+    projectId: string,
+    projectName: string,
+    filesAnalyzed: number,
+    patternsDetected: number,
+    conventionsIdentified: number,
+    languages: string[],
+    frameworks: string[],
+    analysisTimeMs: number
+  ): void {
+    this.info('codebase_fingerprint', {
+      project_id: projectId,
+      project_name: projectName,
+      files_analyzed: filesAnalyzed,
+      patterns_detected: patternsDetected,
+      conventions_identified: conventionsIdentified,
+      languages,
+      frameworks,
+      analysis_time_ms: analysisTimeMs,
+      message: `Codebase fingerprint: ${filesAnalyzed} files, ${patternsDetected} patterns, ${conventionsIdentified} conventions`
     });
   }
 
