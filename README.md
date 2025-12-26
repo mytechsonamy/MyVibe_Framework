@@ -90,17 +90,17 @@ MyVibe Framework enables fully automated software development through AI orchest
 ## SDLC Workflow
 
 ```
-REQUIREMENTS ──► ARCHITECTURE ──► PLANNING ──► DEVELOPMENT ──► TESTING ──► DEPLOYMENT
-    │                │               │              │             │            │
-    ▼                ▼               ▼              ▼             ▼            ▼
- 5 iter           4 iter          3 iter        sprints        5 iter       3 iter
-    │                │               │              │             │            │
-    ▼                ▼               ▼              ▼             ▼            ▼
-AI Review       AI Review       AI Review     Quality       Quality       Deploy
-Consensus       Consensus       Consensus      Gates         Gates        Verify
-    │                │               │              │             │            │
-    ▼                ▼               ▼              ▼             ▼            ▼
-Human OK        Human OK        Human OK     Sprint OK      Human OK     Complete!
+REQUIREMENTS ──► DESIGN ──► ARCHITECTURE ──► PLANNING ──► DEVELOPMENT ──► TESTING ──► DEPLOYMENT
+    │              │            │               │              │             │            │
+    ▼              ▼            ▼               ▼              ▼             ▼            ▼
+ 5 iter         5 iter       4 iter          3 iter        sprints        5 iter       3 iter
+    │              │            │               │              │             │            │
+    ▼              ▼            ▼               ▼              ▼             ▼            ▼
+AI Review      AI Review    AI Review       AI Review     Quality       Quality       Deploy
+Consensus      Consensus    Consensus       Consensus      Gates         Gates        Verify
+    │              │            │               │              │             │            │
+    ▼              ▼            ▼               ▼              ▼             ▼            ▼
+Human OK       Human OK     Human OK        Human OK     Sprint OK      Human OK     Complete!
 ```
 
 ### Phase Details
@@ -108,6 +108,7 @@ Human OK        Human OK        Human OK     Sprint OK      Human OK     Complet
 | Phase | Default Max Iter | AI Consensus | Human Approval | Required Artifacts | Exit Criteria |
 |-------|------------------|--------------|----------------|-------------------|---------------|
 | REQUIREMENTS | 5 | ✅ Required | At phase end | Requirements, User Stories | Acceptance criteria, NFRs, AI consensus |
+| DESIGN | 5 | ✅ Required | At phase end | Wireframes, Mockups, Design Tokens | A11y score ≥80, Consistency validated |
 | ARCHITECTURE | 4 | ✅ Required | At phase end | Architecture, API Contracts, Data Model | C4 model, OpenAPI 3.0, Security design |
 | PLANNING | 3 | ✅ Required | At phase end | Epic Breakdown, Task List | Tasks ≤4h, Dependencies mapped |
 | DEVELOPMENT | 10 | ❌ Not needed | Sprint completion | Code | All tasks done, L1-L2 quality gates |
@@ -116,7 +117,7 @@ Human OK        Human OK        Human OK     Sprint OK      Human OK     Complet
 
 > **Note**: Max iterations are configurable per phase using `state_update_phase_max_iterations`. Values shown are defaults.
 
-## Components (14 MCP Servers)
+## Components (15 MCP Servers)
 
 ### Core Servers
 
@@ -224,9 +225,27 @@ File system and Git operations for development.
 | `dev_run_build` | Build project |
 | `dev_run_lint` | Run linter |
 
+#### 5. Design Tools MCP Server
+**Location**: `design-tools-mcp-server/`
+
+UI/UX design tools with Figma integration, design tokens, and accessibility reviews.
+
+| Tool | Description |
+|------|-------------|
+| `design_create_file` | Create new Figma design file |
+| `design_create_frame` | Create frame/artboard (mobile/tablet/desktop) |
+| `design_add_component` | Add UI component to frame |
+| `design_create_flow` | Create user flow diagram |
+| `design_get_file` | Get Figma file details |
+| `design_extract_tokens` | Extract design tokens from file |
+| `design_export_tokens` | Export tokens (CSS/SCSS/Tailwind/JSON) |
+| `design_review_accessibility` | Run WCAG accessibility checks |
+| `design_review_consistency` | Check design system consistency |
+| `design_generate_component_map` | Generate frontend component mapping |
+
 ### Brownfield Support Servers
 
-#### 5. Repo Indexer MCP Server
+#### 6. Repo Indexer MCP Server
 **Location**: `repo-indexer-mcp-server/`
 
 Codebase intelligence through indexing, symbol tracking, and dependency analysis.
@@ -242,7 +261,7 @@ Codebase intelligence through indexing, symbol tracking, and dependency analysis
 | `repo_get_hotspots` | Find code hotspots (dependents/complexity/churn) |
 | `repo_search` | Search symbols across codebase |
 
-#### 6. Context Orchestrator MCP Server
+#### 7. Context Orchestrator MCP Server
 **Location**: `context-orchestrator-mcp-server/`
 
 Intelligent context selection and token budget management for large codebases.
@@ -256,7 +275,7 @@ Intelligent context selection and token budget management for large codebases.
 | `context_chunk_file` | Split file into semantic chunks |
 | `context_estimate_tokens` | Estimate token counts for files |
 
-#### 7. Delivery Planner MCP Server
+#### 8. Delivery Planner MCP Server
 **Location**: `delivery-planner-mcp-server/`
 
 Incremental delivery planning - slices large changes into reviewable PRs.
@@ -274,7 +293,7 @@ Incremental delivery planning - slices large changes into reviewable PRs.
 | `delivery_create_plan` | Create complete delivery plan |
 | `delivery_validate_plan` | Validate delivery plan |
 
-#### 8. Test Intelligence MCP Server
+#### 9. Test Intelligence MCP Server
 **Location**: `test-intelligence-mcp-server/`
 
 Smart test selection and flaky test detection.
@@ -293,7 +312,7 @@ Smart test selection and flaky test detection.
 | `test_record_run` | Record test run results |
 | `test_history` | Get test run history |
 
-#### 9. Architecture Guardrails MCP Server
+#### 10. Architecture Guardrails MCP Server
 **Location**: `arch-guardrails-mcp-server/`
 
 Architecture-level linting and enforcement.
@@ -310,7 +329,7 @@ Architecture-level linting and enforcement.
 | `arch_report` | Generate analysis report |
 | `arch_score` | Get architecture health score |
 
-#### 10. PR Orchestrator MCP Server
+#### 11. PR Orchestrator MCP Server
 **Location**: `pr-orchestrator-mcp-server/`
 
 VCS-native workflow with PR templates, CODEOWNERS, and AI provenance.
@@ -332,7 +351,7 @@ VCS-native workflow with PR templates, CODEOWNERS, and AI provenance.
 | `pr_init_workflow` | Initialize workflow configuration |
 | `pr_generate_labels` | Generate appropriate labels |
 
-#### 11. Hotspot Analyzer MCP Server
+#### 12. Hotspot Analyzer MCP Server
 **Location**: `hotspot-analyzer-mcp-server/`
 
 Git churn analysis, bug-prone detection, and ownership mapping.
@@ -355,7 +374,7 @@ Git churn analysis, bug-prone detection, and ownership mapping.
 | `authors_file` | Get authors for a file |
 | `authors_inactive` | Find files with inactive owners |
 
-#### 12. Repo Fingerprint MCP Server
+#### 13. Repo Fingerprint MCP Server
 **Location**: `repo-fingerprint-mcp-server/`
 
 Learns project "dialect" - coding style, patterns, and conventions.
@@ -379,7 +398,7 @@ Learns project "dialect" - coding style, patterns, and conventions.
 | `fingerprint_template` | Generate code templates |
 | `fingerprint_suggest` | Suggest naming conventions |
 
-#### 13. Session Persistence MCP Server
+#### 14. Session Persistence MCP Server
 **Location**: `session-persistence-mcp-server/`
 
 Context preservation and session recovery for large projects.
@@ -587,6 +606,13 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
         "ELASTICSEARCH_URL": "http://localhost:9200"
       }
     },
+    "design-tools": {
+      "command": "node",
+      "args": ["/path/to/design-tools-mcp-server/dist/index.js"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "figd_your-token"
+      }
+    },
     "repo-indexer": {
       "command": "node",
       "args": ["/path/to/repo-indexer-mcp-server/dist/index.js"]
@@ -750,6 +776,15 @@ MyVibe_Framework/
 │   │       ├── workspace.ts            # Workspace management
 │   │       ├── git.ts                  # Git operations
 │   │       └── logger.ts               # Elasticsearch logger
+│   └── package.json
+│
+├── design-tools-mcp-server/            # UI/UX Design tools
+│   ├── src/
+│   │   ├── index.ts                    # MCP server entry
+│   │   ├── types.ts                    # Type definitions
+│   │   ├── schemas/design.ts           # Tool schemas
+│   │   └── services/
+│   │       └── design.ts               # Figma, tokens, accessibility
 │   └── package.json
 │
 ├── repo-indexer-mcp-server/            # Codebase intelligence

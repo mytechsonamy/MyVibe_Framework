@@ -67,6 +67,18 @@ export type EventType =
   | 'session_restored'
   | 'codebase_fingerprint'
   | 'style_guide_generated'
+  // Design Phase Events
+  | 'design_file_created'
+  | 'design_frame_created'
+  | 'design_component_added'
+  | 'design_flow_created'
+  | 'design_tokens_extracted'
+  | 'design_tokens_exported'
+  | 'design_accessibility_review'
+  | 'design_consistency_review'
+  | 'design_component_map_generated'
+  | 'design_human_review_requested'
+  | 'design_human_feedback_received'
   | 'error'
   | 'warning'
   | 'info';

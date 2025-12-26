@@ -1,7 +1,8 @@
 // SDLC Phase definitions and workflow templates
 
-export type PhaseType = 
+export type PhaseType =
   | "REQUIREMENTS"
+  | "DESIGN"
   | "ARCHITECTURE"
   | "PLANNING"
   | "DEVELOPMENT"
@@ -52,13 +53,52 @@ export const PHASE_CONFIGS: Record<PhaseType, PhaseConfig> = {
       "All 3 AIs approve (consensus)",
       "Human approval received"
     ],
-    nextPhase: "ARCHITECTURE",
+    nextPhase: "DESIGN",
     toolsUsed: [
       "state_create_iteration",
       "state_save_artifact",
       "ai_review_artifact",
       "ai_challenge_artifact",
       "state_record_consensus",
+      "dev_file_write",
+      "dev_git_commit"
+    ]
+  },
+  DESIGN: {
+    type: "DESIGN",
+    name: "UI/UX Design",
+    nameTr: "UI/UX Tasarım",
+    maxIterations: 5,
+    requiredArtifacts: ["WIREFRAMES", "MOCKUPS", "DESIGN_TOKENS", "COMPONENT_MAP"],
+    deliverables: [
+      "docs/design/wireframes.md",
+      "docs/design/mockups.md",
+      "docs/design/design-tokens.json",
+      "docs/design/component-map.md"
+    ],
+    exitCriteria: [
+      "Wireframes approved by all AIs",
+      "High-fidelity mockups complete",
+      "Design tokens exported",
+      "Accessibility review passed (score >= 80)",
+      "Design consistency validated",
+      "Human approval received"
+    ],
+    nextPhase: "ARCHITECTURE",
+    toolsUsed: [
+      "design_create_file",
+      "design_create_frame",
+      "design_add_component",
+      "design_create_flow",
+      "design_extract_tokens",
+      "design_export_tokens",
+      "design_review_accessibility",
+      "design_review_consistency",
+      "design_generate_component_map",
+      "ai_review_artifact",
+      "ai_challenge_artifact",
+      "state_record_consensus",
+      "state_save_artifact",
       "dev_file_write",
       "dev_git_commit"
     ]

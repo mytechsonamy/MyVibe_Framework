@@ -42,6 +42,13 @@ export const PHASE_PREREQUISITES: Record<PhaseType, PhasePrerequisites> = {
     qualityGatesRequired: [],
     artifactsRequired: ["REQUIREMENTS", "USER_STORIES"]
   },
+  DESIGN: {
+    aiReviewRequired: true,
+    consensusRequired: true,
+    humanApprovalRequired: true,
+    qualityGatesRequired: [],
+    artifactsRequired: ["WIREFRAMES", "MOCKUPS", "DESIGN_TOKENS", "COMPONENT_MAP"]
+  },
   ARCHITECTURE: {
     aiReviewRequired: true,
     consensusRequired: true,

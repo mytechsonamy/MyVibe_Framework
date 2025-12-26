@@ -10,11 +10,12 @@ import { PhaseType, PHASE_CONFIGS } from "./workflow.js";
 // Phase folder mapping - numbered for correct ordering
 export const PHASE_FOLDERS: Record<PhaseType, string> = {
   REQUIREMENTS: "docs/01-requirements",
-  ARCHITECTURE: "docs/02-architecture",
-  PLANNING: "docs/03-planning",
-  DEVELOPMENT: "docs/04-development",
-  TESTING: "docs/05-testing",
-  DEPLOYMENT: "docs/06-deployment"
+  DESIGN: "docs/02-design",
+  ARCHITECTURE: "docs/03-architecture",
+  PLANNING: "docs/04-planning",
+  DEVELOPMENT: "docs/05-development",
+  TESTING: "docs/06-testing",
+  DEPLOYMENT: "docs/07-deployment"
 };
 
 // Get the folder path for a phase

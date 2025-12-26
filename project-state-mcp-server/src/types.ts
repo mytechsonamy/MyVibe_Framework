@@ -32,6 +32,18 @@ export const PHASE_CONFIGS: Record<string, PhaseConfig> = {
       "All 3 AIs confirm no critical gaps"
     ]
   },
+  DESIGN: {
+    type: "DESIGN",
+    maxIterations: 5,
+    requiredArtifacts: ["WIREFRAMES", "MOCKUPS", "DESIGN_TOKENS", "COMPONENT_MAP"],
+    exitCriteria: [
+      "Wireframes approved by all AIs",
+      "High-fidelity mockups complete",
+      "Design tokens exported",
+      "Accessibility review passed",
+      "Human approval received"
+    ]
+  },
   ARCHITECTURE: {
     type: "ARCHITECTURE",
     maxIterations: 4,
