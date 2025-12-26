@@ -551,10 +551,24 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
         "WORKSPACE_ROOT": "/path/to/SDLC_Projects",
         "ELASTICSEARCH_URL": "http://localhost:9200"
       }
+    },
+    "repo-indexer": {
+      "command": "node",
+      "args": ["/path/to/repo-indexer-mcp-server/dist/index.js"]
+    },
+    "context-orchestrator": {
+      "command": "node",
+      "args": ["/path/to/context-orchestrator-mcp-server/dist/index.js"]
+    },
+    "session-persistence": {
+      "command": "node",
+      "args": ["/path/to/session-persistence-mcp-server/dist/index.js"]
     }
   }
 }
 ```
+
+> **Brownfield Support**: For large existing codebases, also add: `delivery-planner`, `test-intelligence`, `arch-guardrails`, `pr-orchestrator`, `hotspot-analyzer`, `repo-fingerprint`
 
 ## Usage
 
@@ -614,6 +628,41 @@ User: onayla
 Claude: ✅ REQUIREMENTS fazı tamamlandı!
 📍 ARCHITECTURE fazina geciliyor...
 ```
+
+### Session Persistence (Large Projects)
+
+For long-running projects, use session persistence to preserve context across sessions:
+
+```
+User: session_resume ile devam et
+
+Claude: session_resume çağırıyorum...
+
+## Session Resumed
+
+**Proje**: Todo List API
+**Faz**: DEVELOPMENT
+**İlerleme**: 7/15 task tamamlandı
+**Son aktivite**: User auth module (2 saat önce)
+
+### Öne Çıkanlar
+- Login/logout endpoints implemented
+- JWT token handling complete
+- 3 failing tests to fix
+
+### Önerilen Aksiyonlar
+- **Fix failing tests**: auth.test.ts has 3 errors
+- **Continue with user profile**: Next feature in backlog
+```
+
+**Key Commands**:
+| Command | Description |
+|---------|-------------|
+| `session_create` | Start tracking a new project |
+| `session_snapshot` | Create checkpoint (auto every 5 min) |
+| `session_resume` | Resume with full context |
+| `session_track_file` | Track important files |
+| `session_record_decision` | Record architecture decisions |
 
 ## Project Structure
 
