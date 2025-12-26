@@ -1,0 +1,255 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": { "h": 3, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "content": "# Context Orchestrator Dashboard\n\nToken budget management, context retrieval metrics, and file relevance analysis for brownfield projects", "mode": "markdown" },
+      "title": "",
+      "type": "text"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 3 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false } },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_plan_created AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Context Plans Created",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 3 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["sum"], "fields": "", "values": false } },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_retrieved AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Context Retrievals",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 3 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false } },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_retrieved AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "avg", "field": "budget_utilization" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Avg Budget Utilization %",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 3 },
+      "id": 5,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["mean"], "fields": "", "values": false } },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_retrieved AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "avg", "field": "retrieval_time_ms" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Avg Retrieval Time",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "none" } },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 7 },
+      "id": 6,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_retrieved AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "avg", "field": "total_tokens" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto" } }
+        ],
+        "timeField": "@timestamp",
+        "alias": "Tokens Used"
+      },
+      {
+        "refId": "B",
+        "query": "event_type:context_retrieved AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "avg", "field": "token_budget" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto" } }
+        ],
+        "timeField": "@timestamp",
+        "alias": "Token Budget"
+      }],
+      "title": "Token Usage vs Budget Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 7 },
+      "id": 7,
+      "options": {
+        "displayLabels": ["name", "percent"],
+        "legend": { "displayMode": "list", "placement": "right", "showLegend": true, "values": ["value"] },
+        "pieType": "donut",
+        "reduceOptions": { "calcs": ["sum"], "fields": "", "values": true }
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_plan_created AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "count" }],
+        "bucketAggs": [
+          { "id": "2", "field": "context_strategy.keyword", "type": "terms", "settings": { "order": "desc", "orderBy": "_count", "size": "10" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Context Strategy Distribution",
+      "type": "piechart"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 17 },
+      "id": 8,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_plan_created AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "avg", "field": "files_selected" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto" } }
+        ],
+        "timeField": "@timestamp",
+        "alias": "Files Selected"
+      },
+      {
+        "refId": "B",
+        "query": "event_type:context_plan_created AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "avg", "field": "files_analyzed" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto" } }
+        ],
+        "timeField": "@timestamp",
+        "alias": "Files Analyzed"
+      }],
+      "title": "File Selection Efficiency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" } } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 17 },
+      "id": 9,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{
+        "refId": "A",
+        "query": "event_type:context_analysis AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "avg", "field": "avg_relevance_score" }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "auto" } }
+        ],
+        "timeField": "@timestamp",
+        "alias": "Avg Relevance Score"
+      }],
+      "title": "Context Relevance Score Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 25 },
+      "id": 10,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "showTime": true,
+        "sortOrder": "Descending"
+      },
+      "targets": [{
+        "refId": "A",
+        "query": "(event_type:context_plan_created OR event_type:context_retrieved OR event_type:context_analysis OR event_type:token_budget_allocated) AND project_name:(${project})",
+        "metrics": [{ "id": "1", "type": "logs", "settings": { "limit": "500" } }],
+        "bucketAggs": [
+          { "id": "2", "field": "@timestamp", "type": "date_histogram", "settings": { "interval": "1d", "min_doc_count": "0" } }
+        ],
+        "timeField": "@timestamp"
+      }],
+      "title": "Context Orchestrator Events",
+      "type": "logs"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "tags": ["sdlc", "brownfield", "context", "orchestrator"],
+  "templating": {
+    "list": [
+      {
+        "datasource": { "type": "elasticsearch", "uid": "elasticsearch-sdlc" },
+        "name": "project",
+        "label": "Project",
+        "type": "query",
+        "query": "{\"find\": \"terms\", \"field\": \"project_name\", \"size\": 100}",
+        "regex": "",
+        "current": { "text": "All", "value": "$__all" },
+        "includeAll": true,
+        "allValue": "*",
+        "refresh": 2,
+        "options": [],
+        "multi": false,
+        "sort": 1
+      }
+    ]
+  },
+  "time": { "from": "now-7d", "to": "now" },
+  "title": "Context Orchestrator",
+  "uid": "brownfield-context",
+  "version": 1
+}
