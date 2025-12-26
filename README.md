@@ -1,60 +1,91 @@
 # MyVibe Framework
 
-AI-Orchestrated SDLC Framework - A comprehensive software development lifecycle automation system powered by multi-AI consensus.
+AI-Orchestrated SDLC Framework - A comprehensive software development lifecycle automation system powered by multi-AI consensus. Supports both greenfield and brownfield (100K+ LOC) projects.
 
 ## Overview
 
 MyVibe Framework enables fully automated software development through AI orchestration. Claude acts as the primary orchestrator, while ChatGPT and Gemini provide review and challenge capabilities, ensuring high-quality deliverables through multi-AI consensus.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           MyVibe Framework                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│   ┌──────────────┐    ┌──────────────┐    ┌──────────────┐                  │
-│   │    Claude    │    │   ChatGPT    │    │    Gemini    │                  │
-│   │ Orchestrator │◄──►│   Reviewer   │◄──►│  Challenger  │                  │
-│   └──────┬───────┘    └──────────────┘    └──────────────┘                  │
-│          │                                                                   │
-│          ▼                                                                   │
-│   ┌─────────────────────────────────────────────────────────┐               │
-│   │              SDLC Orchestrator (MCP Server)              │               │
-│   │  sdlc_init │ sdlc_status │ sdlc_continue │ sdlc_review  │               │
-│   └─────────────────────────┬───────────────────────────────┘               │
-│                             │                                                │
-│          ┌──────────────────┼──────────────────┐                            │
-│          ▼                  ▼                  ▼                            │
-│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                     │
-│   │ AI Gateway  │    │Project State│    │  Dev Tools  │                     │
-│   │ MCP Server  │    │ MCP Server  │    │ MCP Server  │                     │
-│   └──────┬──────┘    └──────┬──────┘    └──────┬──────┘                     │
-│          │                  │                  │                            │
-│          ▼                  ▼                  ▼                            │
-│   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                     │
-│   │ OpenAI API  │    │ PostgreSQL  │    │ File System │                     │
-│   │ Google API  │    │  Database   │    │    + Git    │                     │
-│   └─────────────┘    └─────────────┘    └─────────────┘                     │
-│                             │                                                │
-│                             ▼                                                │
-│               ┌───────────────────────────┐                                 │
-│               │   Observability Stack     │                                 │
-│               │ Elasticsearch + Grafana   │                                 │
-│               └───────────────────────────┘                                 │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                                    MyVibe Framework                                       │
+│                              14 MCP Servers • Multi-AI Consensus                          │
+├──────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                           │
+│  ╔═══════════════════════════════════════════════════════════════════════════════════╗   │
+│  ║                              AI ORCHESTRATION LAYER                                ║   │
+│  ╠═══════════════════════════════════════════════════════════════════════════════════╣   │
+│  ║  ┌──────────────┐       ┌──────────────┐       ┌──────────────┐                   ║   │
+│  ║  │    Claude    │◄─────►│   ChatGPT    │◄─────►│    Gemini    │                   ║   │
+│  ║  │ Orchestrator │       │   Reviewer   │       │  Challenger  │                   ║   │
+│  ║  └──────┬───────┘       └──────────────┘       └──────────────┘                   ║   │
+│  ╚═════════╪═════════════════════════════════════════════════════════════════════════╝   │
+│            │                                                                              │
+│            ▼                                                                              │
+│  ╔═══════════════════════════════════════════════════════════════════════════════════╗   │
+│  ║                                 CORE MCP SERVERS                                   ║   │
+│  ╠═══════════════════════════════════════════════════════════════════════════════════╣   │
+│  ║  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐  ║   │
+│  ║  │     SDLC        │  │   AI Gateway    │  │  Project State  │  │  Dev Tools   │  ║   │
+│  ║  │  Orchestrator   │  │   (ChatGPT +    │  │   (PostgreSQL)  │  │  (Git + FS)  │  ║   │
+│  ║  │                 │  │    Gemini)      │  │                 │  │              │  ║   │
+│  ║  └─────────────────┘  └─────────────────┘  └─────────────────┘  └──────────────┘  ║   │
+│  ╚═══════════════════════════════════════════════════════════════════════════════════╝   │
+│                                                                                           │
+│  ╔═══════════════════════════════════════════════════════════════════════════════════╗   │
+│  ║                          BROWNFIELD SUPPORT (Large Codebases)                      ║   │
+│  ╠═══════════════════════════════════════════════════════════════════════════════════╣   │
+│  ║                                                                                    ║   │
+│  ║  ┌─ P0: Core Infrastructure ─────────────────────────────────────────────────────┐║   │
+│  ║  │  ┌──────────────┐  ┌──────────────────┐  ┌──────────────────┐                 │║   │
+│  ║  │  │ Repo Indexer │  │ Context          │  │ Session          │                 │║   │
+│  ║  │  │ (AST+Symbols)│  │ Orchestrator     │  │ Persistence      │                 │║   │
+│  ║  │  │              │  │ (Token Budget)   │  │ (Context Recovery)│                │║   │
+│  ║  │  └──────────────┘  └──────────────────┘  └──────────────────┘                 │║   │
+│  ║  └───────────────────────────────────────────────────────────────────────────────┘║   │
+│  ║                                                                                    ║   │
+│  ║  ┌─ P1: Workflow Enhancement ────────────────────────────────────────────────────┐║   │
+│  ║  │  ┌──────────────┐  ┌──────────────────┐  ┌──────────────────┐                 │║   │
+│  ║  │  │ Delivery     │  │ Test             │  │ Architecture     │                 │║   │
+│  ║  │  │ Planner      │  │ Intelligence     │  │ Guardrails       │                 │║   │
+│  ║  │  │ (PR Slicing) │  │ (Smart Selection)│  │ (Layer Rules)    │                 │║   │
+│  ║  │  └──────────────┘  └──────────────────┘  └──────────────────┘                 │║   │
+│  ║  └───────────────────────────────────────────────────────────────────────────────┘║   │
+│  ║                                                                                    ║   │
+│  ║  ┌─ P2: Integration & Analytics ─────────────────────────────────────────────────┐║   │
+│  ║  │  ┌──────────────┐  ┌──────────────────┐  ┌──────────────────┐                 │║   │
+│  ║  │  │ PR           │  │ Hotspot          │  │ Repo             │                 │║   │
+│  ║  │  │ Orchestrator │  │ Analyzer         │  │ Fingerprint      │                 │║   │
+│  ║  │  │ (CODEOWNERS) │  │ (Churn+Risk)     │  │ (Style Learning) │                 │║   │
+│  ║  │  └──────────────┘  └──────────────────┘  └──────────────────┘                 │║   │
+│  ║  └───────────────────────────────────────────────────────────────────────────────┘║   │
+│  ╚═══════════════════════════════════════════════════════════════════════════════════╝   │
+│                                                                                           │
+│  ╔═══════════════════════════════════════════════════════════════════════════════════╗   │
+│  ║                               OBSERVABILITY LAYER                                  ║   │
+│  ╠═══════════════════════════════════════════════════════════════════════════════════╣   │
+│  ║       Elasticsearch  ◄────────►  Kibana  ◄────────►  Grafana Dashboards           ║   │
+│  ╚═══════════════════════════════════════════════════════════════════════════════════╝   │
+│                                                                                           │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Features
 
-- **Multi-AI Consensus**: Claude orchestrates, ChatGPT (GPT-5.2) reviews, Gemini (3 Flash) challenges
+### Core Capabilities
+- **Multi-AI Consensus**: Claude orchestrates, ChatGPT reviews, Gemini challenges
 - **6-Phase SDLC**: Requirements → Architecture → Planning → Development → Testing → Deployment
-- **Dynamic Iteration Control**: Max iterations configurable per phase via `state_update_phase_max_iterations`
-- **Quality Gates**: 7-level quality gates (L1-L7) from task completion to regression testing
-- **Human-in-the-Loop**: Human approval only at phase transitions (not during iterations)
-- **Project-Specific Agents**: Custom agent definitions in `docs/agents/*.md` with system prompts
-- **Real-time Observability**: Elasticsearch + Grafana dashboards for monitoring
-- **Minimal User Input**: Simple commands like `devam` (continue) to progress
-- **Phase-Specific Behavior**: AI consensus for early phases, quality gates for TESTING/DEPLOYMENT
+- **Quality Gates**: 7-level gates (L1-L7) from task completion to regression testing
+- **Human-in-the-Loop**: Human approval at phase transitions only
+- **Real-time Observability**: Elasticsearch + Grafana dashboards
+
+### Brownfield Support (Large Codebases)
+- **Codebase Intelligence**: AST parsing, symbol extraction, dependency graphs
+- **Smart Context**: Token budget management, relevance scoring, semantic chunking
+- **Session Persistence**: Context recovery across sessions, auto-snapshots
+- **Test Intelligence**: Impact-based test selection, flaky test detection
+- **Architecture Guardrails**: Layer boundary enforcement, pattern validation
+- **PR Automation**: CODEOWNERS, AI provenance, reviewer suggestions
 
 ## SDLC Workflow
 
@@ -85,9 +116,11 @@ Human OK        Human OK        Human OK     Sprint OK      Human OK     Complet
 
 > **Note**: Max iterations are configurable per phase using `state_update_phase_max_iterations`. Values shown are defaults.
 
-## Components
+## Components (14 MCP Servers)
 
-### 1. SDLC Orchestrator MCP Server
+### Core Servers
+
+#### 1. SDLC Orchestrator MCP Server
 **Location**: `sdlc-orchestrator-mcp-server/`
 
 The brain of the framework. Orchestrates all other servers and guides the workflow.
@@ -111,7 +144,7 @@ The brain of the framework. Orchestrates all other servers and guides the workfl
 | `sdlc_rollback` | Rollback failed deployment (revert or reset) |
 | `sdlc_check_deployment_health` | Run health checks, auto-rollback on failure |
 
-### 2. AI Gateway MCP Server
+#### 2. AI Gateway MCP Server
 **Location**: `ai-gateway-mcp-server/`
 
 Unified access to multiple AI systems for review and consensus.
@@ -133,7 +166,7 @@ Unified access to multiple AI systems for review and consensus.
 - `developer` - Code generation
 - `code_reviewer` - Code review
 
-### 3. Project State MCP Server
+#### 3. Project State MCP Server
 **Location**: `project-state-mcp-server/`
 
 PostgreSQL-backed persistent state management.
@@ -159,7 +192,7 @@ PostgreSQL-backed persistent state management.
 | `state_get_tasks` | List tasks |
 | `state_run_quality_gate` | Record quality gate result |
 
-### 4. Dev Tools MCP Server
+#### 4. Dev Tools MCP Server
 **Location**: `dev-tools-mcp-server/`
 
 File system and Git operations for development.
@@ -191,7 +224,9 @@ File system and Git operations for development.
 | `dev_run_build` | Build project |
 | `dev_run_lint` | Run linter |
 
-### 5. Repo Indexer MCP Server
+### Brownfield Support Servers
+
+#### 5. Repo Indexer MCP Server
 **Location**: `repo-indexer-mcp-server/`
 
 Codebase intelligence through indexing, symbol tracking, and dependency analysis.
@@ -207,7 +242,7 @@ Codebase intelligence through indexing, symbol tracking, and dependency analysis
 | `repo_get_hotspots` | Find code hotspots (dependents/complexity/churn) |
 | `repo_search` | Search symbols across codebase |
 
-### 6. Context Orchestrator MCP Server
+#### 6. Context Orchestrator MCP Server
 **Location**: `context-orchestrator-mcp-server/`
 
 Intelligent context selection and token budget management for large codebases.
@@ -221,7 +256,7 @@ Intelligent context selection and token budget management for large codebases.
 | `context_chunk_file` | Split file into semantic chunks |
 | `context_estimate_tokens` | Estimate token counts for files |
 
-### 7. Delivery Planner MCP Server
+#### 7. Delivery Planner MCP Server
 **Location**: `delivery-planner-mcp-server/`
 
 Incremental delivery planning - slices large changes into reviewable PRs.
@@ -239,7 +274,7 @@ Incremental delivery planning - slices large changes into reviewable PRs.
 | `delivery_create_plan` | Create complete delivery plan |
 | `delivery_validate_plan` | Validate delivery plan |
 
-### 8. Test Intelligence MCP Server
+#### 8. Test Intelligence MCP Server
 **Location**: `test-intelligence-mcp-server/`
 
 Smart test selection and flaky test detection.
@@ -258,7 +293,7 @@ Smart test selection and flaky test detection.
 | `test_record_run` | Record test run results |
 | `test_history` | Get test run history |
 
-### 9. Architecture Guardrails MCP Server
+#### 9. Architecture Guardrails MCP Server
 **Location**: `arch-guardrails-mcp-server/`
 
 Architecture-level linting and enforcement.
@@ -275,7 +310,7 @@ Architecture-level linting and enforcement.
 | `arch_report` | Generate analysis report |
 | `arch_score` | Get architecture health score |
 
-### 10. PR Orchestrator MCP Server
+#### 10. PR Orchestrator MCP Server
 **Location**: `pr-orchestrator-mcp-server/`
 
 VCS-native workflow with PR templates, CODEOWNERS, and AI provenance.
@@ -297,7 +332,7 @@ VCS-native workflow with PR templates, CODEOWNERS, and AI provenance.
 | `pr_init_workflow` | Initialize workflow configuration |
 | `pr_generate_labels` | Generate appropriate labels |
 
-### 11. Hotspot Analyzer MCP Server
+#### 11. Hotspot Analyzer MCP Server
 **Location**: `hotspot-analyzer-mcp-server/`
 
 Git churn analysis, bug-prone detection, and ownership mapping.
@@ -320,7 +355,7 @@ Git churn analysis, bug-prone detection, and ownership mapping.
 | `authors_file` | Get authors for a file |
 | `authors_inactive` | Find files with inactive owners |
 
-### 12. Repo Fingerprint MCP Server
+#### 12. Repo Fingerprint MCP Server
 **Location**: `repo-fingerprint-mcp-server/`
 
 Learns project "dialect" - coding style, patterns, and conventions.
@@ -344,7 +379,7 @@ Learns project "dialect" - coding style, patterns, and conventions.
 | `fingerprint_template` | Generate code templates |
 | `fingerprint_suggest` | Suggest naming conventions |
 
-### 13. Session Persistence MCP Server
+#### 13. Session Persistence MCP Server
 **Location**: `session-persistence-mcp-server/`
 
 Context preservation and session recovery for large projects.
@@ -366,7 +401,7 @@ Context preservation and session recovery for large projects.
 | `session_get_context` | Get resumption context |
 | `session_cleanup` | Cleanup old sessions |
 
-### 14. Observability Stack
+### Observability Stack
 **Location**: `sdlc-observability/`
 
 Real-time monitoring with Elasticsearch, Kibana, and Grafana.
